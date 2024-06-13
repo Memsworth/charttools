@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Melanchall.DryWetMidi.Nativeless" Version="7.0.2" />
+    <PackageReference Include="Melanchall.DryWetMidi.Nativeless" Version="7.1.0" />
   </ItemGroup>
 
 </Project>
