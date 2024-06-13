@@ -10,6 +10,8 @@ internal class ChartFileReader : TextFileReader
     public override IEnumerable<ChartParser> Parsers => base.Parsers.Cast<ChartParser>();
     public override bool DefinedSectionEnd => true;
 
+    public ChartFileReader(TextReader reader, Func<string, ChartParser?> parserGetter) : base(reader, parserGetter) { }
+    public ChartFileReader(Stream stream, Func<string, ChartParser?> parserGetter) : base(stream, parserGetter) { }
     public ChartFileReader(string path, Func<string, ChartParser?> parserGetter) : base(path, parserGetter) { }
 
     protected override bool IsSectionStart(string line) => line == "{";
