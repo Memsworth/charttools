@@ -1,4 +1,5 @@
 ﻿using ChartTools.Extensions.Collections;
+using ChartTools.IO.Configuration;
 
 namespace ChartTools.IO;
 
@@ -20,7 +21,7 @@ internal abstract class FileReader<T>(string path) : IDisposable
     public abstract void Dispose();
 }
 
-internal abstract class FileReader<T, TParser>(string path, Func<string, TParser?> parserGetter) : FileReader<T>(path) where TParser : FileParser<T>
+internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path) where TParser : FileParser<T>
 {
     public record ParserContentGroup(TParser Parser, DelayedEnumerableSource<T> Source);
 
@@ -28,7 +29,8 @@ internal abstract class FileReader<T, TParser>(string path, Func<string, TParser
 
     protected readonly List<ParserContentGroup> parserGroups = [];
     protected readonly List<Task> parseTasks = [];
-    protected readonly Func<string, TParser?> parserGetter = parserGetter;
+
+    protected abstract TParser? GetParser(string header);
 
     public override void Read()
     {

@@ -3,7 +3,8 @@ using ChartTools.IO.Formatting;
 
 namespace ChartTools.IO.Chart.Configuration.Sessions;
 
-internal class ChartReadingSession(ChartReadingConfiguration? config, FormattingRules? formatting) : ChartSession(formatting)
+internal class ChartReadingSession(ComponentList components, ChartReadingConfiguration? config, FormattingRules? formatting)
+    : ChartSession(components, formatting)
 {
     public override ChartReadingConfiguration Configuration { get; } = config ?? ChartFile.DefaultReadConfig;
 
