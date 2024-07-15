@@ -101,19 +101,6 @@ public static class ChartFile
     #endregion
 
     #region Instruments
-    /// <summary>
-    /// Combines the results from the parsers in a <see cref="ChartFileReader"/> into an instrument.
-    /// </summary>
-    private static TInst? CreateInstrumentFromReader<TInst, TChord>(ChartFileReader reader) where TInst : Instrument<TChord>, new() where TChord : IChord, new()
-    {
-        TInst? output = null;
-
-        foreach (var parser in reader.Parsers.Cast<TrackParser<TChord>>())
-            parser.ApplyToInstrument(output ??= new());
-
-        return output;
-    }
-
     private static InstrumentSet CreateInstrumentSetFromReader(ChartFileReader reader)
     {
         var instruments = new InstrumentSet();
@@ -170,15 +157,7 @@ public static class ChartFile
         return CreateInstrumentSetFromReader(reader);
     }
 
-    /// <summary>
-    /// Reads an instrument from a chart file.
-    /// </summary>
-    /// <returns>Instance of <see cref="Instrument"/> containing all data about the given instrument
-    ///     <para><see langword="null"/> if the file contains no data for the given instrument</para>
-    /// </returns>
-    /// <param name="path">Path of the file to read</param>
-    /// <param name="instrument">Instrument to read</param>
-    /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static Instrument? ReadInstrument(string path, InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         if (instrument == InstrumentIdentity.Drums)
@@ -190,6 +169,7 @@ public static class ChartFile
             : throw new UndefinedEnumException(instrument);
     }
 
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Instrument?> ReadInstrumentAsync(string path, InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         if (instrument == InstrumentIdentity.Drums)
@@ -233,88 +213,42 @@ public static class ChartFile
     #endregion
 
     #region Drums
-    /// <summary>
-    /// Reads drums from a chart file.
-    /// </summary>
-    /// <returns>Instance of <see cref="Instrument{TChord}"/> where TChord is <see cref="DrumsChord"/> containing all drums data
-    ///     <para><see langword="null"/> if the file contains no drums data</para>
-    /// </returns>
-    /// <param name="path">Path of the file to read</param>
-    /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
-    /// <param name="formatting"><inheritdoc cref="FormattingRules" path="/summary"/></param>
-    public static Drums? ReadDrums(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration ? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(InstrumentIdentity.Drums, difficulties) }, config, formatting);
-        var reader = new ChartFileReader(path, session);
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
+    public static Drums? ReadDrums(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadInstruments(path, new(InstrumentIdentity.Drums), config, formatting).Drums;
 
-        reader.Read();
-        return CreateInstrumentFromReader<Drums, DrumsChord>(reader);
-    }
-
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Drums?> ReadDrumsAsync(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(InstrumentIdentity.Drums) }, config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return CreateInstrumentFromReader<Drums, DrumsChord>(reader);
-    }
+        => (await ReadInstrumentsAsync(path, new(InstrumentIdentity.Drums), config, formatting)).Drums;
     #endregion
 
     #region GHL
-    /// <summary>
-    /// Reads a Guitar Hero Live instrument from a chart file.
-    /// </summary>
-    /// <returns>Instance of <see cref="Instrument{TChord}"/> where TChord is <see cref="GHLChord"/> containing all data about the given instrument
-    ///     <para><see langword="null"/> if the file has no data for the given instrument</para>
-    /// </returns>
-    /// <param name="path">Path of the file to read</param>
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static GHLInstrument? ReadInstrument(string path, GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(instrument, difficulties) }, config, formatting);
-        var reader  = new ChartFileReader(path, session);
+        => ReadInstruments(path, new(instrument, difficulties), config, formatting).Get(instrument);
 
-        reader.Read();
-        return CreateInstrumentFromReader<GHLInstrument, GHLChord>(reader);
-    }
-
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<GHLInstrument?> ReadInstrumentAsync(string path, GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(instrument, difficulties) }, config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return CreateInstrumentFromReader<GHLInstrument, GHLChord>(reader);
-    }
+        => (await ReadInstrumentsAsync(path, new(instrument, difficulties), config, formatting, cancellationToken)).Get(instrument);
     #endregion
 
     #region Standard
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static StandardInstrument? ReadInstrument(string path, StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(instrument, difficulties) }, config, formatting);
-        var reader = new ChartFileReader(path, session);
+        => ReadInstruments(path, new(instrument, difficulties), config, formatting).Get(instrument);
 
-        reader.Read();
-        return CreateInstrumentFromReader<StandardInstrument, StandardChord>(reader);
-    }
-
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<StandardInstrument?> ReadInstrumentAsync(string path, StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new() { Instruments = new(instrument, difficulties) }, config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return CreateInstrumentFromReader<StandardInstrument, StandardChord>(reader);
-    }
+        => (await ReadInstrumentsAsync(path, new(instrument, difficulties), config, formatting, cancellationToken)).Get(instrument);
     #endregion
     #endregion
 
     #region Tracks
-    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static Track? ReadTrack(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
         => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Track?> ReadTrackAsync(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
         => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
 
@@ -329,21 +263,21 @@ public static class ChartFile
     #endregion
 
     #region GHL
-    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static Track<GHLChord>? ReadTrack(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
         => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Track<GHLChord>?> ReadTrackAsync(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
         => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
     #endregion
 
     #region Standard
-    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static Track<StandardChord>? ReadTrack(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
         => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Track<StandardChord>?> ReadTrackAsync(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
          => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
     #endregion
@@ -402,7 +336,8 @@ public static class ChartFile
     /// </summary>
     /// <param name="path"><inheritdoc cref="ReadLyrics(string)" path="/param[@name='path']"/></param>
     /// <param name="cancellationToken">Token to request cancellation</param>
-    public static async Task<IEnumerable<Phrase>> ReadLyricsAsync(string path, CancellationToken cancellationToken = default) => (await ReadGlobalEventsAsync(path, cancellationToken)).GetLyrics();
+    public static async Task<IEnumerable<Phrase>> ReadLyricsAsync(string path, CancellationToken cancellationToken = default)
+        => (await ReadGlobalEventsAsync(path, cancellationToken)).GetLyrics();
     #endregion
 
     #region Sync track
@@ -434,18 +369,23 @@ public static class ChartFile
     #endregion
 
     #region Writing
-    private static void FillInstrumentWriterData(Instrument? inst, InstrumentIdentity identity, DifficultySet tracks, ChartWritingSession session,
+    private static void FillInstrumentsWriterData(InstrumentSet set, InstrumentComponentList components, ChartWritingSession session,
         ICollection<Serializer<string>> serializers, ICollection<string> removedHeaders)
     {
-        // Only act on tracks specified in the component list
-        foreach (var diff in EnumCache<Difficulty>.Values.Where(d => tracks.HasFlag(d.ToSet())))
+        foreach (var identity in EnumCache<InstrumentIdentity>.Values)
         {
-            var track = inst?.GetTrack(diff);
+            var tracks = components.Map(identity);
 
-            if (track?.IsEmpty is not null or false)
-                serializers.Add(new TrackSerializer(track, session));
-            else // No track data for the instrument and difficulty
-                removedHeaders.Add(ChartFormatting.Header(identity, diff));
+            // Only act on tracks specified in the component list
+            foreach (var diff in EnumCache<Difficulty>.Values.Where(d => tracks.HasFlag(d.ToSet())))
+            {
+                var track = set.Get(identity)?.GetTrack(diff);
+
+                if (track?.IsEmpty is not null or false)
+                    serializers.Add(new TrackSerializer(track, session));
+                else // No track data for the instrument and difficulty
+                    removedHeaders.Add(ChartFormatting.Header(identity, diff));
+            }
         }
     }
 
@@ -473,8 +413,7 @@ public static class ChartFile
                 removedHeaders.Add(ChartFormatting.GlobalEventHeader);
         }
 
-        foreach (var identity in EnumCache<InstrumentIdentity>.Values)
-            FillInstrumentWriterData(song.Instruments.Get(identity), identity, components.Instruments.Map(identity), session, serializers, removedHeaders);
+        FillInstrumentsWriterData(song.Instruments, components.Instruments, session, serializers, removedHeaders);
 
         if (song.UnknownChartSections is not null)
             serializers.AddRange(song.UnknownChartSections.Select(s => new UnknownSectionSerializer(s.Header, s, session)));
@@ -511,57 +450,48 @@ public static class ChartFile
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetInstrumentSetWriter(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
+    private static ChartFileWriter GetInstrumentsWriter(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
     {
         var serializers = new List<Serializer<string>>();
         var removedHeaders = new List<string>();
 
-        foreach (var identity in EnumCache<InstrumentIdentity>.Values)
-            FillInstrumentWriterData(set.Get(identity), identity, components.Map(identity), session, serializers, removedHeaders);
+        FillInstrumentsWriterData(set, components, session, serializers, removedHeaders);
 
         return new(path, removedHeaders, [.. serializers]);
     }
 
-    public static void ReplaceInstrumentSet(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
+    public static void ReplaceInstruments(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartWritingSession(config, formatting);
-        var writer = GetInstrumentSetWriter(path, set, components, new(config, formatting));
+        var writer = GetInstrumentsWriter(path, set, components, new(config, formatting));
 
         writer.Write();
     }
 
-    public static async Task ReplaceInstrumentSetAsync(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static async Task ReplaceInstrumentsAsync(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartWritingSession(config, formatting);
-        var writer = GetInstrumentSetWriter(path, set, components, new(config, formatting));
+        var writer = GetInstrumentsWriter(path, set, components, new(config, formatting));
 
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetInstrumentWriter(string path, Instrument? instrument, InstrumentIdentity identity, DifficultySet diffs, ChartWritingSession session)
-    {
-        var removedHeaders = new List<string>();
-        var serializers = new List<Serializer<string>>();
-
-        FillInstrumentWriterData(instrument, identity, diffs, session, serializers, removedHeaders);
-
-        return new(path, removedHeaders, [.. serializers]);
-    }
-
-    /// <summary>
-    /// Replaces an instrument in a file.
-    /// </summary>
-    /// <param name="path">Path of the file to write</param>
+    [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static void ReplaceInstrument(string path, Instrument instrument, DifficultySet diffs = DifficultySet.All, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, diffs, new(config, formatting));
-        writer.Write();
+        var set = new InstrumentSet();
+        set.Set(instrument);
+
+        ReplaceInstruments(path, set, new(instrument.InstrumentIdentity, diffs), config, formatting);
     }
 
+    [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task ReplaceInstrumentAsync(string path, Instrument instrument, DifficultySet diffs = DifficultySet.All, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, diffs, new(config, formatting));
-        await writer.WriteAsync(cancellationToken);
+        var set = new InstrumentSet();
+        set.Set(instrument);
+
+        await ReplaceInstrumentsAsync(path, set, new(instrument.InstrumentIdentity, diffs), config, formatting);
     }
 
     private static ChartFileWriter GetTrackWriter(string path, Track track, ChartWritingSession session)
