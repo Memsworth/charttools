@@ -3,7 +3,7 @@ using ChartTools.IO.Parsing;
 
 namespace ChartTools.IO;
 
-internal abstract class TextFileReader(TextReader reader, Func<string, TextParser?> parserGetter) : FileReader<string, TextParser>(parserGetter)
+internal abstract class TextFileReader(string path) : FileReader<string, TextParser>(path)
 {
     public override string? Path { get; }
     public TextReader Reader { get; } = reader;
@@ -35,8 +35,8 @@ internal abstract class TextFileReader(TextReader reader, Func<string, TextParse
                 return;
             }
 
-            var header = line;
-            var parser = parserGetter(header);
+            var header = enumerator.Current;
+            var parser = GetParser(header);
 
             if (parser is not null)
             {

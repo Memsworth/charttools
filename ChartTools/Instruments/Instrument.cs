@@ -94,7 +94,7 @@ public abstract record Instrument : IEmptyVerifiable
     /// <summary>
     /// Creates an array containing all tracks.
     /// </summary>
-    public virtual Track?[] GetTracks() => new Track?[] { Easy, Medium, Hard, Expert };
+    public virtual Track?[] GetTracks() => [Easy, Medium, Hard, Expert];
     /// <summary>
     /// Creates an array containing all tracks with data.
     /// </summary>
