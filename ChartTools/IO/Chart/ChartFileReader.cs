@@ -1,5 +1,6 @@
 ﻿using ChartTools.IO.Chart.Configuration.Sessions;
 using ChartTools.IO.Chart.Parsing;
+using ChartTools.IO.Components;
 using ChartTools.IO.Configuration;
 using ChartTools.IO.Parsing;
 
@@ -27,13 +28,13 @@ internal class ChartFileReader(string path, ChartReadingSession session) : TextF
                 return session.Components.SyncTrack ? new SyncTrackParser(session) : null;
             default:
                 if (ChartFormatting.DrumsTrackHeaders.TryGetValue(header, out Difficulty diff))
-                    return session.Components.Drums.HasFlag(diff.ToSet())
+                    return session.Components.Instruments.Drums.HasFlag(diff.ToSet())
                         ? new DrumsTrackParser(diff, session, header) : null;
                 else if (ChartFormatting.GHLTrackHeaders.TryGetValue(header, out (Difficulty, GHLInstrumentIdentity) ghlTuple))
-                    return session.Components.Drums.HasFlag(ghlTuple.Item1.ToSet())
+                    return session.Components.Instruments.Map(ghlTuple.Item2).HasFlag(ghlTuple.Item1.ToSet())
                         ? new GHLTrackParser(ghlTuple.Item1, ghlTuple.Item2, session, header) : null;
                 else if (ChartFormatting.StandardTrackHeaders.TryGetValue(header, out (Difficulty, StandardInstrumentIdentity) standardTuple))
-                    return session.Components.Drums.HasFlag(standardTuple.Item1.ToSet())
+                    return session.Components.Instruments.Map(standardTuple.Item2).HasFlag(standardTuple.Item1.ToSet())
                         ? new StandardTrackParser(standardTuple.Item1, standardTuple.Item2, session, header) : null;
                 else
                 {

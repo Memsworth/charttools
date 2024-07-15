@@ -1,10 +1,12 @@
-﻿namespace ChartTools.IO.Ini;
+﻿using ChartTools.IO.Parsing;
 
-internal class IniFileReader : TextFileReader
+namespace ChartTools.IO.Ini;
+
+internal class IniFileReader(string path, Metadata? existing) : TextFileReader(path)
 {
     public override IEnumerable<IniParser> Parsers => base.Parsers.Cast<IniParser>();
 
-    public IniFileReader(string path, Func<string, IniParser?> parserGetter) : base(path, parserGetter) { }
+    protected override TextParser? GetParser(string header) => header.Equals(IniFormatting.Header, StringComparison.OrdinalIgnoreCase) ? new IniParser(existing) : null;
 
     protected override bool IsSectionStart(string line) => !line.StartsWith('[');
 }

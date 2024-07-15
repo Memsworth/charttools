@@ -1,42 +1,36 @@
-﻿namespace ChartTools.IO;
+﻿namespace ChartTools.IO.Components;
 
 [Flags]
 public enum DifficultySet : byte
 {
-    None   = 0,
-    Easy   = 1 << 0,
+    None = 0,
+    Easy = 1 << 0,
     Medium = 1 << 1,
-    Hard   = 1 << 2,
+    Hard = 1 << 2,
     Expert = 1 << 3,
     All = Easy | Medium | Hard | Expert
 };
+
 
 public static class DifficultyExtensions
 {
     public static DifficultySet ToSet(this Difficulty difficulty) => (DifficultySet)(1 << (int)difficulty);
 }
 
-public record ComponentList()
+public record InstrumentComponentList()
 {
-    public static ComponentList Full() => new()
+    public static InstrumentComponentList Full() => new()
     {
-        Metadata     = true,
-        SyncTrack    = true,
-        GlobalEvents = true,
-        Drums        = DifficultySet.All,
-        LeadGuitar   = DifficultySet.All,
-        CoopGuitar   = DifficultySet.All,
-        RythmGuitar  = DifficultySet.All,
-        Bass         = DifficultySet.All,
-        GHLGuitar    = DifficultySet.All,
-        GHLBass      = DifficultySet.All,
-        Keys         = DifficultySet.All,
-        Vocals       = DifficultySet.All
+        Drums       = DifficultySet.All,
+        LeadGuitar  = DifficultySet.All,
+        CoopGuitar  = DifficultySet.All,
+        RythmGuitar = DifficultySet.All,
+        Bass        = DifficultySet.All,
+        GHLGuitar   = DifficultySet.All,
+        GHLBass     = DifficultySet.All,
+        Keys        = DifficultySet.All,
+        Vocals      = DifficultySet.All
     };
-
-    public bool Metadata { get; set; }
-    public bool SyncTrack { get; set; }
-    public bool GlobalEvents { get; set; }
 
     public DifficultySet Drums
     {
@@ -101,38 +95,38 @@ public record ComponentList()
     }
     private DifficultySet _vocals;
 
-    public ComponentList(InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
+    public InstrumentComponentList(InstrumentIdentity identity, DifficultySet difficulties = DifficultySet.All) : this()
     {
-        Validator.ValidateEnum(instrument);
+        Validator.ValidateEnum(identity);
         Validator.ValidateEnum(difficulties);
 
-        MapInstrument(instrument) = difficulties;
+        Map(identity) = difficulties;
     }
 
-    public ComponentList(StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
+    public InstrumentComponentList(StandardInstrumentIdentity identity, DifficultySet difficulties = DifficultySet.All) : this()
     {
-        Validator.ValidateEnum(instrument);
+        Validator.ValidateEnum(identity);
         Validator.ValidateEnum(difficulties);
 
-        MapInstrument((InstrumentIdentity)instrument) = difficulties;
+        Map((InstrumentIdentity)identity) = difficulties;
     }
 
-    public ComponentList(GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
+    public InstrumentComponentList(GHLInstrumentIdentity identity, DifficultySet difficulties = DifficultySet.All) : this()
     {
-        Validator.ValidateEnum(instrument);
+        Validator.ValidateEnum(identity);
         Validator.ValidateEnum(difficulties);
 
-        MapInstrument((InstrumentIdentity)instrument) = difficulties;
+        Map((InstrumentIdentity)identity) = difficulties;
     }
 
-    public ref DifficultySet MapInstrument(InstrumentIdentity instrument)
+    public ref DifficultySet Map(InstrumentIdentity instrument)
     {
         switch (instrument)
         {
             case InstrumentIdentity.Drums:
                 return ref _drums;
             case InstrumentIdentity.LeadGuitar:
-                return ref _leadGuitar;2
+                return ref _leadGuitar;
             case InstrumentIdentity.CoopGuitar:
                 return ref _coopGuitar;
             case InstrumentIdentity.RhythmGuitar:
@@ -143,12 +137,24 @@ public record ComponentList()
                 return ref _ghlGuitar;
             case InstrumentIdentity.GHLBass:
                 return ref _ghlBass;
-            case InstrumentIdentity.Keys;
+            case InstrumentIdentity.Keys:
                 return ref _keys;
             case InstrumentIdentity.Vocals:
                 return ref _vocals;
             default:
                 throw new UndefinedEnumException(instrument);
         }
+    }
+
+    public ref DifficultySet Map(StandardInstrumentIdentity instrument)
+    {
+        Validator.ValidateEnum(instrument);
+        return ref Map((InstrumentIdentity)(instrument));
+    }
+
+    public ref DifficultySet Map(GHLInstrumentIdentity instrument)
+    {
+        Validator.ValidateEnum(instrument);
+        return ref Map((InstrumentIdentity)(instrument));
     }
 }

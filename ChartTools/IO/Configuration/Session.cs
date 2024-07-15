@@ -3,12 +3,10 @@ using ChartTools.IO.Formatting;
 
 namespace ChartTools.IO.Configuration;
 
-internal abstract class Session(ComponentList components, FormattingRules? formatting)
+internal abstract class Session(FormattingRules? formatting)
 {
     public abstract ICommonConfiguration Configuration { get; }
     public FormattingRules Formatting { get; set; } = formatting ?? new();
-
-    public ComponentList Components { get; set; } = components;
 
     public bool HandleDuplicate(uint position, string objectType, Func<bool> checkDuplicate) => Configuration.DuplicateTrackObjectPolicy switch
     {
