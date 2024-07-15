@@ -108,10 +108,66 @@ public static class ChartFile
     {
         TInst? output = null;
 
-        foreach (var parser in reader.Parsers)
-            (output ??= new()).SetTrack(((TrackParser<TChord>)parser).Result!);
+        foreach (var parser in reader.Parsers.Cast<TrackParser<TChord>>())
+            parser.ApplyToInstrument(output ??= new());
 
         return output;
+    }
+
+    private static InstrumentSet CreateInstrumentSetFromReader(ChartFileReader reader)
+    {
+        var instruments = new InstrumentSet();
+
+        foreach (var parser in reader.Parsers)
+            switch (parser)
+            {
+                case DrumsTrackParser drumsParser:
+                    instruments.Drums ??= new();
+                    drumsParser.ApplyToInstrument(instruments.Drums);
+                    break;
+                case StandardTrackParser standardParser:
+                    var standardInst = instruments.Get(standardParser.Instrument);
+
+                    if (standardInst is null)
+                    {
+                        standardInst = new StandardInstrument(standardParser.Instrument);
+                        instruments.Set(standardInst);
+                    }
+
+                    standardParser.ApplyToInstrument(standardInst);
+                    break;
+                case GHLTrackParser ghlParser:
+                    var ghlInst = instruments.Get(ghlParser.Instrument);
+
+                    if (ghlInst is null)
+                    {
+                        ghlInst = new GHLInstrument(ghlParser.Instrument);
+                        instruments.Set(ghlInst);
+                    }
+
+                    ghlParser.ApplyToInstrument(ghlInst);
+                    break;
+            }
+
+        return instruments;
+    }
+
+    public static InstrumentSet ReadInstruments(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    {
+        var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
+        var reader = new ChartFileReader(path, session);
+
+        reader.Read();
+        return CreateInstrumentSetFromReader(reader);
+    }
+
+    public static async Task<InstrumentSet> ReadInstrumentsAsync(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    {
+        var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
+        var reader = new ChartFileReader(path, session);
+
+        await reader.ReadAsync(cancellationToken);
+        return CreateInstrumentSetFromReader(reader);
     }
 
     /// <summary>
@@ -455,12 +511,39 @@ public static class ChartFile
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetInstrumentWriter(string path, Instrument? instrument, InstrumentIdentity identity, ChartWritingSession session)
+    private static ChartFileWriter GetInstrumentSetWriter(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
+    {
+        var serializers = new List<Serializer<string>>();
+        var removedHeaders = new List<string>();
+
+        foreach (var identity in EnumCache<InstrumentIdentity>.Values)
+            FillInstrumentWriterData(set.Get(identity), identity, components.Map(identity), session, serializers, removedHeaders);
+
+        return new(path, removedHeaders, [.. serializers]);
+    }
+
+    public static void ReplaceInstrumentSet(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
+    {
+        var session = new ChartWritingSession(config, formatting);
+        var writer = GetInstrumentSetWriter(path, set, components, new(config, formatting));
+
+        writer.Write();
+    }
+
+    public static async Task ReplaceInstrumentSetAsync(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    {
+        var session = new ChartWritingSession(config, formatting);
+        var writer = GetInstrumentSetWriter(path, set, components, new(config, formatting));
+
+        await writer.WriteAsync(cancellationToken);
+    }
+
+    private static ChartFileWriter GetInstrumentWriter(string path, Instrument? instrument, InstrumentIdentity identity, DifficultySet diffs, ChartWritingSession session)
     {
         var removedHeaders = new List<string>();
         var serializers = new List<Serializer<string>>();
 
-        FillInstrumentWriterData(instrument, identity, DifficultySet.All, session, serializers, removedHeaders);
+        FillInstrumentWriterData(instrument, identity, diffs, session, serializers, removedHeaders);
 
         return new(path, removedHeaders, [.. serializers]);
     }
@@ -469,15 +552,15 @@ public static class ChartFile
     /// Replaces an instrument in a file.
     /// </summary>
     /// <param name="path">Path of the file to write</param>
-    public static void ReplaceInstrument(string path, Instrument instrument, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
+    public static void ReplaceInstrument(string path, Instrument instrument, DifficultySet diffs = DifficultySet.All, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, new(config, formatting));
+        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, diffs, new(config, formatting));
         writer.Write();
     }
 
-    public static async Task ReplaceInstrumentAsync(string path, Instrument instrument, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static async Task ReplaceInstrumentAsync(string path, Instrument instrument, DifficultySet diffs = DifficultySet.All, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, new(config, formatting));
+        var writer = GetInstrumentWriter(path, instrument, instrument.InstrumentIdentity, diffs, new(config, formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
@@ -491,12 +574,14 @@ public static class ChartFile
         return new(path, null, new TrackSerializer(track, session));
     }
 
+    [Obsolete($"Use {nameof(ReplaceInstrument)} with a {nameof(DifficultySet)}.")]
     public static void ReplaceTrack(string path, Track track, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var writer = GetTrackWriter(path, track, new(config, formatting));
         writer.Write();
     }
 
+    [Obsolete($"Use {nameof(ReplaceInstrumentAsync)} with a {nameof(DifficultySet)}.")]
     public static async Task ReplaceTrackAsync(string path, Track track, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var writer = GetTrackWriter(path, track, new(config, formatting));
