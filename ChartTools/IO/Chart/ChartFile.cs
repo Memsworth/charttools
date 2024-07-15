@@ -62,7 +62,7 @@ public static class ChartFile
     /// <param name="config"><inheritdoc cref="Song.FromFile(string, ReadingConfiguration?, FormattingRules?)" path="/param[@name='config']"/></param>
     public static Song ReadSong(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var session = new ChartReadingSession(ComponentList.Full, config, formatting);
+        var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         reader.Read();
@@ -71,7 +71,7 @@ public static class ChartFile
 
     public static async Task<Song> ReadSongAsync(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var session = new ChartReadingSession(ComponentList.Full, config, formatting);
+        var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         await reader.ReadAsync(cancellationToken);
@@ -88,7 +88,7 @@ public static class ChartFile
         return CreateSongFromReader(reader);
     }
 
-    public static async Task<Song> ReadComponents(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static async Task<Song> ReadComponentsAsync(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
 
         var session = new ChartReadingSession(components, config, formatting);
@@ -122,24 +122,25 @@ public static class ChartFile
     /// <param name="path">Path of the file to read</param>
     /// <param name="instrument">Instrument to read</param>
     /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
-    public static Instrument? ReadInstrument(string path, InstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    public static Instrument? ReadInstrument(string path, InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         if (instrument == InstrumentIdentity.Drums)
-            return ReadDrums(path, config, formatting);
+            return ReadDrums(path, difficulties, config, formatting);
         if (Enum.IsDefined((GHLInstrumentIdentity)instrument))
-            return ReadInstrument(path, (GHLInstrumentIdentity)instrument, config, formatting);
+            return ReadInstrument(path, (GHLInstrumentIdentity)instrument, difficulties, config, formatting);
         return Enum.IsDefined((StandardInstrumentIdentity)instrument)
-            ? ReadInstrument(path, (StandardInstrumentIdentity)instrument, config, formatting)
+            ? ReadInstrument(path, (StandardInstrumentIdentity)instrument, difficulties, config, formatting)
             : throw new UndefinedEnumException(instrument);
     }
-    public static async Task<Instrument?> ReadInstrumentAsync(string path, InstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+
+    public static async Task<Instrument?> ReadInstrumentAsync(string path, InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         if (instrument == InstrumentIdentity.Drums)
-            return await ReadDrumsAsync(path, config, formatting, cancellationToken);
+            return await ReadDrumsAsync(path, difficulties, config, formatting, cancellationToken);
         if (Enum.IsDefined((GHLInstrumentIdentity)instrument))
-            return await ReadInstrumentAsync(path, (GHLInstrumentIdentity)instrument, config, formatting, cancellationToken);
+            return await ReadInstrumentAsync(path, (GHLInstrumentIdentity)instrument, difficulties, config, formatting, cancellationToken);
         return Enum.IsDefined((StandardInstrumentIdentity)instrument)
-            ? await ReadInstrumentAsync(path, (StandardInstrumentIdentity)instrument, config, formatting, cancellationToken)
+            ? await ReadInstrumentAsync(path, (StandardInstrumentIdentity)instrument, difficulties, config, formatting, cancellationToken)
             : throw new UndefinedEnumException(instrument);
     }
 
@@ -152,6 +153,7 @@ public static class ChartFile
     /// </returns>
     /// <param name="path">Path of the file to read</param>
     public static Vocals? ReadVocals(string path) => BuildVocals(ReadGlobalEvents(path));
+
     public static async Task<Vocals?> ReadVocalsAsync(string path, CancellationToken cancellationToken = default) => BuildVocals(await ReadGlobalEventsAsync(path, cancellationToken));
 
     private static Vocals? BuildVocals(IList<GlobalEvent> events)
@@ -183,7 +185,7 @@ public static class ChartFile
     /// <param name="path">Path of the file to read</param>
     /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
     /// <param name="formatting"><inheritdoc cref="FormattingRules" path="/summary"/></param>
-    public static Drums? ReadDrums(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    public static Drums? ReadDrums(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration ? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(new(InstrumentIdentity.Drums), config, formatting);
         var reader = new ChartFileReader(path, session);
@@ -191,9 +193,10 @@ public static class ChartFile
         reader.Read();
         return CreateInstrumentFromReader<Drums, DrumsChord>(reader);
     }
-    public static async Task<Drums?> ReadDrumsAsync(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+
+    public static async Task<Drums?> ReadDrumsAsync(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var session = new ChartReadingSession(new(InstrumentIdentity.Drums), config, formatting);
+        var session = new ChartReadingSession(new(InstrumentIdentity.Drums, difficulties), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         await reader.ReadAsync(cancellationToken);
@@ -209,17 +212,18 @@ public static class ChartFile
     ///     <para><see langword="null"/> if the file has no data for the given instrument</para>
     /// </returns>
     /// <param name="path">Path of the file to read</param>
-    public static GHLInstrument? ReadInstrument(string path, GHLInstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    public static GHLInstrument? ReadInstrument(string path, GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var session = new ChartReadingSession(new(instrument), config, formatting);
+        var session = new ChartReadingSession(new(instrument, difficulties), config, formatting);
         var reader  = new ChartFileReader(path, session);
 
         reader.Read();
         return CreateInstrumentFromReader<GHLInstrument, GHLChord>(reader);
     }
-    public static async Task<GHLInstrument?> ReadInstrumentAsync(string path, GHLInstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+
+    public static async Task<GHLInstrument?> ReadInstrumentAsync(string path, GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var session = new ChartReadingSession(new(instrument), config, formatting);
+        var session = new ChartReadingSession(new(instrument, difficulties), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         await reader.ReadAsync(cancellationToken);
@@ -228,18 +232,18 @@ public static class ChartFile
     #endregion
 
     #region Standard
-    public static StandardInstrument? ReadInstrument(string path, StandardInstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    public static StandardInstrument? ReadInstrument(string path, StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var session = new ChartReadingSession(new(instrument), config, formatting);
+        var session = new ChartReadingSession(new(instrument, difficulties), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         reader.Read();
         return CreateInstrumentFromReader<StandardInstrument, StandardChord>(reader);
     }
 
-    public static async Task<StandardInstrument?> ReadInstrumentAsync(string path, StandardInstrumentIdentity instrument, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static async Task<StandardInstrument?> ReadInstrumentAsync(string path, StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var session = new ChartReadingSession(new(instrument), config, formatting);
+        var session = new ChartReadingSession(new(instrument, difficulties), config, formatting);
         var reader = new ChartFileReader(path, session);
 
         await reader.ReadAsync(cancellationToken);
@@ -249,130 +253,42 @@ public static class ChartFile
     #endregion
 
     #region Tracks
-    /// <inheritdoc cref="Track.FromFile(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFile(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFile(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFile(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='difficulty']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFile(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='config']"/></param>
-    public static Track ReadTrack(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        if (instrument == InstrumentIdentity.Drums)
-            return ReadDrumsTrack(path, difficulty, config, formatting);
-        if (Enum.IsDefined((GHLInstrumentIdentity)instrument))
-            return ReadTrack(path, (GHLInstrumentIdentity)instrument, difficulty, config, formatting);
-        if (Enum.IsDefined((StandardInstrumentIdentity)instrument))
-            return ReadTrack(path, (StandardInstrumentIdentity)instrument, difficulty, config, formatting);
+    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    public static Track? ReadTrack(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-        throw new UndefinedEnumException(instrument);
-    }
-    /// <inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='difficulty']"/></param>
-    /// <param name="cancellationToken"><inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='cancellationToken']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFileAsync(string, InstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='config']"/></param>
-    public static async Task<Track> ReadTrackAsync(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        if (instrument == InstrumentIdentity.Drums)
-            return await ReadDrumsTrackAsync(path, difficulty, config, formatting, cancellationToken);
-        if (Enum.IsDefined((GHLInstrumentIdentity)instrument))
-            return await ReadTrackAsync(path, (GHLInstrumentIdentity)instrument, difficulty, config, formatting, cancellationToken);
-        if (Enum.IsDefined((StandardInstrumentIdentity)instrument))
-            return await ReadTrackAsync(path, (StandardInstrumentIdentity)instrument, difficulty, config, formatting, cancellationToken);
+    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    public static async Task<Track?> ReadTrackAsync(string path, InstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
 
-        throw new UndefinedEnumException(instrument);
-    }
     #region Drums
-    /// <inheritdoc cref="Track.FromFile(string, Difficulty, ReadingConfiguration?, FormattingRules?)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFile(string, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='path']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFile(string, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='difficulty']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFile(string, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='config']"/></param>
+    [Obsolete($"Use {nameof(ReadDrums)} with a {nameof(DifficultySet)}.")]
     public static Track<DrumsChord> ReadDrumsTrack(string path, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new(InstrumentIdentity.Drums, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
+        => ReadDrums(path, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty) ?? new();
 
-        reader.Read();
-        return reader.Parsers.TryGetFirstOfType(out DrumsTrackParser? parser) ? parser!.Result! : new();
-    }
-
-    /// <inheritdoc cref="Track.FromFileAsync(string, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFileAsync(string, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFileAsync(string, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='difficulty']"/></param>
-    /// <param name="cancellationToken"><inheritdoc cref="Track.FromFileAsync(string, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='cancellationToken']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFileAsync(string, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='config']"/></param>
+    [Obsolete($"Use {nameof(ReadDrumsAsync)} with a {nameof(DifficultySet)}.")]
     public static async Task<Track<DrumsChord>> ReadDrumsTrackAsync(string path, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new(InstrumentIdentity.Drums, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return reader.Parsers.TryGetFirstOfType(out DrumsTrackParser? parser) ? parser!.Result! : new();
-    }
+        => (await ReadDrumsAsync(path, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty) ?? new();
     #endregion
 
     #region GHL
+    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    public static Track<GHLChord>? ReadTrack(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-    /// <inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='difficulty']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='config']"/></param>
-    public static Track<GHLChord> ReadTrack(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new(instrument, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        reader.Read();
-        return reader.Parsers.TryGetFirstOfType(out GHLTrackParser? parser) ? parser!.Result : new();
-    }
-
-    /// <inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='difficulty']"/></param>
-    /// <param name="cancellationToken"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='cancellationToken']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFileAsync(string, GHLInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='config']"/></param>
-    public static async Task<Track<GHLChord>> ReadTrackAsync(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new(instrument, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return reader.Parsers.TryGetFirstOfType(out GHLTrackParser? parser) ? parser!.Result : new();
-    }
+    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    public static async Task<Track<GHLChord>?> ReadTrackAsync(string path, GHLInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
     #endregion
 
     #region Standard
-    /// <inheritdoc cref="Track.FromFile(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFile(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFile(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFile(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='difficulty']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFile(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?)" path="/param[@name='config']"/></param>
-    public static Track<StandardChord> ReadTrack(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
-    {
-        var session = new ChartReadingSession(new(instrument, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
+    [Obsolete($"Use {nameof(ReadInstrument)} with a {nameof(DifficultySet)}.")]
+    public static Track<StandardChord>? ReadTrack(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadInstrument(path, instrument, difficulty.ToSet(), config, formatting)?.GetTrack(difficulty);
 
-        reader.Read();
-        return reader.Parsers.TryGetFirstOfType(out StandardTrackParser? parser) ? parser!.Result! : new();
-    }
-
-    /// <inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="instrument"><inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='instrument']"/></param>
-    /// <param name="difficulty"><inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='difficulty']"/></param>
-    /// <param name="cancellationToken"><inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='cancellationToken']"/></param>
-    /// <param name="config"><inheritdoc cref="Track.FromFileAsync(string, StandardInstrumentIdentity, Difficulty, ReadingConfiguration?, FormattingRules?, CancellationToken)" path="/param[@name='config']"/></param>
-    /// <returns></returns>
-    public static async Task<Track<StandardChord>> ReadTrackAsync(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
-        var session = new ChartReadingSession(new(instrument, difficulty), config, formatting);
-        var reader = new ChartFileReader(path, session);
-
-        await reader.ReadAsync(cancellationToken);
-        return reader.Parsers.TryGetFirstOfType(out StandardTrackParser? parser) ? parser!.Result! : new();
-    }
+    [Obsolete($"Use {nameof(ReadInstrumentAsync)} with a {nameof(DifficultySet)}.")]
+    public static async Task<Track<StandardChord>?> ReadTrackAsync(string path, StandardInstrumentIdentity instrument, Difficulty difficulty, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+         => (await ReadInstrumentAsync(path, instrument, difficulty.ToSet(), config, formatting, cancellationToken))?.GetTrack(difficulty);
     #endregion
     #endregion
 
@@ -423,6 +339,7 @@ public static class ChartFile
     /// <param name="path">Path of the file to read</param>
     /// <inheritdoc cref="ReadGlobalEvents(string)" path="/exception"/>
     public static IEnumerable<Phrase> ReadLyrics(string path) => ReadGlobalEvents(path).GetLyrics();
+
     /// <summary>
     /// Reads lyrics from a chart file asynchronously using multitasking.
     /// </summary>
@@ -588,11 +505,13 @@ public static class ChartFile
         var writer = GetGlobalEventWriter(path, events, new(DefaultWriteConfig, null));
         writer.Write();
     }
+
     public static async Task ReplaceGlobalEventsAsync(string path, IEnumerable<GlobalEvent> events, CancellationToken cancellationToken = default)
     {
         var writer = GetGlobalEventWriter(path, events, new(DefaultWriteConfig, null));
         await writer.WriteAsync(cancellationToken);
     }
+
     private static ChartFileWriter GetGlobalEventWriter(string path, IEnumerable<GlobalEvent> events, ChartWritingSession session) => new(path, null, new GlobalEventSerializer(events, session));
 
     /// <summary>
@@ -606,12 +525,13 @@ public static class ChartFile
         var writer = GetSyncTrackWriter(path, syncTrack, new(config, null));
         writer.Write();
     }
-    /// <inheritdoc cref="ReplaceSyncTrack(string, SyncTrack, WritingConfiguration?)"/>
+
     public static async Task ReplaceSyncTrackAsync(string path, SyncTrack syncTrack, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
         var writer = GetSyncTrackWriter(path, syncTrack, new(config, null));
         await writer.WriteAsync(cancellationToken);
     }
+
     private static ChartFileWriter GetSyncTrackWriter(string path, SyncTrack syncTrack, ChartWritingSession session) => new(path, null, new SyncTrackSerializer(syncTrack, session));
     #endregion
 

@@ -18,7 +18,7 @@ public static class DifficultyExtensions
 
 public record ComponentList()
 {
-    public static readonly ComponentList Full = new()
+    public static ComponentList Full() => new()
     {
         Metadata     = true,
         SyncTrack    = true,
@@ -34,125 +34,105 @@ public record ComponentList()
         Vocals       = DifficultySet.All
     };
 
-    public bool Metadata { get; init; }
-    public bool SyncTrack { get; init; }
-    public bool GlobalEvents { get; init; }
+    public bool Metadata { get; set; }
+    public bool SyncTrack { get; set; }
+    public bool GlobalEvents { get; set; }
 
     public DifficultySet Drums
     {
         get => _drums;
-        init => _drums = value;
+        set => _drums = value;
     }
     private DifficultySet _drums;
 
     public DifficultySet LeadGuitar
     {
         get => _leadGuitar;
-        init => _leadGuitar = value;
+        set => _leadGuitar = value;
     }
     private DifficultySet _leadGuitar;
 
     public DifficultySet CoopGuitar
     {
         get => _coopGuitar;
-        init => _coopGuitar = value;
+        set => _coopGuitar = value;
     }
     private DifficultySet _coopGuitar;
 
     public DifficultySet RythmGuitar
     {
         get => _rythmGuitar;
-        init => _rythmGuitar = value;
+        set => _rythmGuitar = value;
     }
     private DifficultySet _rythmGuitar;
 
     public DifficultySet Bass
     {
         get => _bass;
-        init => _bass = value;
+        set => _bass = value;
     }
     private DifficultySet _bass;
 
     public DifficultySet GHLGuitar
     {
         get => _ghlGuitar;
-        init => _ghlGuitar = value;
+        set => _ghlGuitar = value;
     }
     private DifficultySet _ghlGuitar;
 
     public DifficultySet GHLBass
     {
         get => _ghlBass;
-        init => _ghlBass = value;
+        set => _ghlBass = value;
     }
     private DifficultySet _ghlBass;
 
     public DifficultySet Keys
     {
         get => _keys;
-        init => _keys = value;
+        set => _keys = value;
     }
     private DifficultySet _keys;
 
     public DifficultySet Vocals
     {
         get => _vocals;
-        init => _vocals = value;
+        set => _vocals = value;
     }
     private DifficultySet _vocals;
 
-    public ComponentList(InstrumentIdentity instrument) : this()
+    public ComponentList(InstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
     {
         Validator.ValidateEnum(instrument);
-        MapInstrument(instrument) = DifficultySet.All;
+        Validator.ValidateEnum(difficulties);
+
+        MapInstrument(instrument) = difficulties;
     }
 
-    public ComponentList(StandardInstrumentIdentity instrument) : this()
+    public ComponentList(StandardInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
     {
         Validator.ValidateEnum(instrument);
-        MapInstrument((InstrumentIdentity)instrument) = DifficultySet.All;
+        Validator.ValidateEnum(difficulties);
+
+        MapInstrument((InstrumentIdentity)instrument) = difficulties;
     }
 
-    public ComponentList(GHLInstrumentIdentity instrument) : this()
+    public ComponentList(GHLInstrumentIdentity instrument, DifficultySet difficulties = DifficultySet.All) : this()
     {
         Validator.ValidateEnum(instrument);
-        MapInstrument((InstrumentIdentity)instrument) = DifficultySet.All;
+        Validator.ValidateEnum(difficulties);
+
+        MapInstrument((InstrumentIdentity)instrument) = difficulties;
     }
 
-    public ComponentList(InstrumentIdentity instrument, Difficulty difficulty) : this()
-    {
-        Validator.ValidateEnum(instrument);
-        Validator.ValidateEnum(difficulty);
-
-        MapInstrument(instrument) = difficulty.ToSet();
-    }
-
-    public ComponentList(StandardInstrumentIdentity instrument, Difficulty difficulty) : this()
-    {
-        Validator.ValidateEnum(instrument);
-        Validator.ValidateEnum(difficulty);
-
-        MapInstrument((InstrumentIdentity)instrument) = difficulty.ToSet();
-    }
-
-    public ComponentList(GHLInstrumentIdentity instrument, Difficulty difficulty) : this()
-    {
-        Validator.ValidateEnum(instrument);
-        Validator.ValidateEnum(difficulty);
-
-        MapInstrument((InstrumentIdentity)instrument) = difficulty.ToSet();
-    }
-
-    public ref readonly DifficultySet GetInstrument(InstrumentIdentity instrument) => ref MapInstrument(instrument);
-
-    private ref DifficultySet MapInstrument(InstrumentIdentity instrument)
+    public ref DifficultySet MapInstrument(InstrumentIdentity instrument)
     {
         switch (instrument)
         {
             case InstrumentIdentity.Drums:
                 return ref _drums;
             case InstrumentIdentity.LeadGuitar:
-                return ref _leadGuitar;
+                return ref _leadGuitar;2
             case InstrumentIdentity.CoopGuitar:
                 return ref _coopGuitar;
             case InstrumentIdentity.RhythmGuitar:
