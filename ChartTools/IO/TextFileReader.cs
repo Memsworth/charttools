@@ -12,7 +12,7 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
         ParserContentGroup? currentGroup = null;
         using var enumerator = File.ReadLines(Path).Where(s => !string.IsNullOrEmpty(s)).Select(s => s.Trim()).GetEnumerator();
 
-        while (enumerator.MoveNext())
+        while (enumerator.MoveNext()) // Runs once for every section
         {
             currentGroup = null;
 
