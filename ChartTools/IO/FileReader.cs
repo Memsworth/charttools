@@ -55,7 +55,7 @@ internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path
         IsReading = false;
     }
 
-    protected abstract void ReadBase(bool read, CancellationToken cancellationToken);
+    protected abstract void ReadBase(bool async, CancellationToken cancellationToken);
 
     public void Reset()
     {

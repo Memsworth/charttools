@@ -14,7 +14,9 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
 
         while (enumerator.MoveNext())
         {
-            // Find part
+            currentGroup = null;
+
+            // Find section
             while (!enumerator.Current.StartsWith('['))
                 if (enumerator.MoveNext())
                     return;
@@ -50,7 +52,7 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
             do
                 if (!AdvanceSection())
                 {
-                    Finish();
+                    FinishSection();
                     return;
                 }
             while (!IsSectionStart(enumerator.Current));
@@ -64,14 +66,14 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
 
                 if (!AdvanceSection())
                 {
-                    Finish();
+                    FinishSection();
                     return;
                 }
             }
 
-            Finish();
+            FinishSection();
 
-            void Finish()
+            void FinishSection()
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
