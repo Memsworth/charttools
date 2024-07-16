@@ -16,7 +16,9 @@ internal abstract class TextFileReader : FileReader<string, TextParser>
 
         while (enumerator.MoveNext())
         {
-            // Find part
+            currentGroup = null;
+
+            // Find section
             while (!enumerator.Current.StartsWith('['))
                 if (enumerator.MoveNext())
                     return;
@@ -52,7 +54,7 @@ internal abstract class TextFileReader : FileReader<string, TextParser>
             do
                 if (!AdvanceSection())
                 {
-                    Finish();
+                    FinishSection();
                     return;
                 }
             while (!IsSectionStart(enumerator.Current));
@@ -66,14 +68,14 @@ internal abstract class TextFileReader : FileReader<string, TextParser>
 
                 if (!AdvanceSection())
                 {
-                    Finish();
+                    FinishSection();
                     return;
                 }
             }
 
-            Finish();
+            FinishSection();
 
-            void Finish()
+            void FinishSection()
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
