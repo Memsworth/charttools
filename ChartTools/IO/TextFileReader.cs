@@ -3,11 +3,9 @@ using ChartTools.IO.Parsing;
 
 namespace ChartTools.IO;
 
-internal abstract class TextFileReader : FileReader<string, TextParser>
+internal abstract class TextFileReader(string path) : FileReader<string, TextParser>(path)
 {
     public virtual bool DefinedSectionEnd { get; } = false;
-
-    public TextFileReader(string path, Func<string, TextParser?> parserGetter) : base(path, parserGetter) { }
 
     protected override void ReadBase(bool async, CancellationToken cancellationToken)
     {
@@ -30,7 +28,7 @@ internal abstract class TextFileReader : FileReader<string, TextParser>
             }
 
             var header = enumerator.Current;
-            var parser = parserGetter(header);
+            var parser = GetParser(header);
 
             if (parser is not null)
             {
