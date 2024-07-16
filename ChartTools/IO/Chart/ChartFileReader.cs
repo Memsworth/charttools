@@ -3,13 +3,14 @@ using ChartTools.IO.Chart.Parsing;
 using ChartTools.IO.Components;
 using ChartTools.IO.Configuration;
 using ChartTools.IO.Parsing;
+using ChartTools.IO.Sources.Text;
 
 namespace ChartTools.IO.Chart;
 
 /// <summary>
 /// Reader of text file that sends read lines to subscribers of its events.
 /// </summary>
-internal class ChartFileReader(string path, ChartReadingSession session) : TextFileReader(path)
+internal class ChartFileReader(TextReadDataSource source, ChartReadingSession session) : TextFileReader(source)
 {
     protected readonly ChartReadingSession session = session;
 
@@ -44,9 +45,6 @@ internal class ChartFileReader(string path, ChartReadingSession session) : TextF
                 }
         }
     }
-    public ChartFileReader(TextReader reader, Func<string, ChartParser?> parserGetter) : base(reader, parserGetter) { }
-    public ChartFileReader(Stream stream, Func<string, ChartParser?> parserGetter) : base(stream, parserGetter) { }
-    public ChartFileReader(string path, Func<string, ChartParser?> parserGetter) : base(path, parserGetter) { }
 
     protected override bool IsSectionStart(string line) => line == "{";
     protected override bool IsSectionEnd(string line) => ChartFormatting.IsSectionEnd(line);

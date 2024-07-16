@@ -1,15 +1,15 @@
 ﻿using ChartTools.Extensions.Collections;
-using ChartTools.IO.Configuration;
+using ChartTools.IO.Sources;
 
 namespace ChartTools.IO;
 
-internal abstract class FileReader<T> : IDisposable
+internal abstract class FileReader<T>(DataSource source) : IDisposable
 {
-    public virtual string? Path => null;
-    public bool IsReading { get; protected set; }
-    public abstract IEnumerable<FileParser<T>> Parsers { get; }
+    public DataSource Source { get; }
 
-    protected readonly List<IDisposable> ownedResources = [];
+    public bool IsReading { get; protected set; }
+
+    public abstract IEnumerable<FileParser<T>> Parsers { get; }
 
     public abstract void Read();
     public abstract Task ReadAsync(CancellationToken cancellationToken);
@@ -20,10 +20,10 @@ internal abstract class FileReader<T> : IDisposable
             throw new InvalidOperationException("Cannot start read operation while the reader is busy.");
     }
 
-    public abstract void Dispose();
+    public virtual void Dispose() => Source.Dispose();
 }
 
-internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path) where TParser : FileParser<T>
+internal abstract class FileReader<T, TParser>(DataSource source) : FileReader<T>(source) where TParser : FileParser<T>
 {
     public record ParserContentGroup(TParser Parser, DelayedEnumerableSource<T> Source);
 
@@ -39,6 +39,9 @@ internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path
         CheckBusy();
         IsReading = true;
 
+        parserGroups.Clear();
+        parseTasks.Clear();
+
         ReadBase(false, CancellationToken.None);
 
         foreach (var group in parserGroups)
@@ -46,6 +49,7 @@ internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path
 
         IsReading = false;
     }
+
     public override async Task ReadAsync(CancellationToken cancellationToken)
     {
         CheckBusy();
@@ -61,13 +65,12 @@ internal abstract class FileReader<T, TParser>(string path) : FileReader<T>(path
 
     public override void Dispose()
     {
+        base.Dispose();
+
         foreach (var group in parserGroups)
             group.Source.Dispose();
 
         foreach (var task in parseTasks)
             task.Dispose();
-
-        foreach (var resource in ownedResources)
-            resource.Dispose();
     }
 }

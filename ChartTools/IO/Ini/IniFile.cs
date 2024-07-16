@@ -14,7 +14,7 @@ public static class IniFile
     /// <returns>A new instance of <see cref="Metadata"/> if <paramref name="existing"/> is <see langword="null"/>, otherwise the same reference.</returns>
     public static Metadata ReadMetadata(string path, Metadata? existing = null)
     {
-        var reader = new IniFileReader(path, existing);
+        var reader = new IniFileReader(new(path), existing);
         reader.Read();
 
         return reader.Parsers.TryGetFirst(out var parser)
@@ -26,7 +26,7 @@ public static class IniFile
     /// <returns>A new instance of <see cref="Metadata"/> if <paramref name="existing"/> is <see langword="null"/>, otherwise the same reference.</returns>
     public static async Task<Metadata> ReadMetadataAsync(string path, Metadata? existing = null, CancellationToken cancellationToken = default)
     {
-        var reader = new IniFileReader(path, existing);
+        var reader = new IniFileReader(new(path), existing);
         await reader.ReadAsync(cancellationToken);
 
         return reader.Parsers.TryGetFirst(out var parser)

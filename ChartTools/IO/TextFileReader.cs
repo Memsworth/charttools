@@ -1,21 +1,14 @@
 ﻿using ChartTools.Extensions.Collections;
 using ChartTools.IO.Parsing;
+using ChartTools.IO.Sources.Text;
 
 namespace ChartTools.IO;
 
-internal abstract class TextFileReader(string path) : FileReader<string, TextParser>(path)
+internal abstract class TextFileReader(TextReadDataSource source) : FileReader<string, TextParser>(source)
 {
-    public override string? Path { get; }
-    public TextReader Reader { get; } = reader;
     public virtual bool DefinedSectionEnd { get; } = false;
 
-    public TextFileReader(Stream stream, Func<string, TextParser?> parserGetter) : this(new StreamReader(stream), parserGetter) { }
-
-    public TextFileReader(string path, Func<string, TextParser?> parserGetter) : this(new FileStream(path, FileMode.Open, FileAccess.Read), parserGetter)
-    {
-        Path = path;
-        ownedResources.Add(Reader);
-    }
+    protected bool _disposeReader = false;
 
     protected override void ReadBase(bool async, CancellationToken cancellationToken)
     {
@@ -35,7 +28,7 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
                 return;
             }
 
-            var header = enumerator.Current;
+            var header = line;
             var parser = GetParser(header);
 
             if (parser is not null)
@@ -99,7 +92,7 @@ internal abstract class TextFileReader(string path) : FileReader<string, TextPar
         {
             string? newLine;
 
-            while ((newLine = Reader.ReadLine()) == string.Empty) ;
+            while ((newLine = ((TextReadDataSource)Source).Reader.ReadLine()) == string.Empty) ;
 
             if (newLine is null)
                 return false;

@@ -64,7 +64,7 @@ public static class ChartFile
     public static Song ReadSong(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return CreateSongFromReader(reader);
@@ -73,7 +73,7 @@ public static class ChartFile
     public static async Task<Song> ReadSongAsync(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
@@ -81,9 +81,8 @@ public static class ChartFile
 
     public static Song ReadComponents(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
-
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return CreateSongFromReader(reader);
@@ -93,7 +92,7 @@ public static class ChartFile
     {
 
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
@@ -142,7 +141,7 @@ public static class ChartFile
     public static InstrumentSet ReadInstruments(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return CreateInstrumentSetFromReader(reader);
@@ -151,7 +150,7 @@ public static class ChartFile
     public static async Task<InstrumentSet> ReadInstrumentsAsync(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateInstrumentSetFromReader(reader);
@@ -291,7 +290,7 @@ public static class ChartFile
     public static Metadata ReadMetadata(string path)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
@@ -304,7 +303,7 @@ public static class ChartFile
     public static List<GlobalEvent> ReadGlobalEvents(string path)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
@@ -317,7 +316,7 @@ public static class ChartFile
     public static async Task<List<GlobalEvent>> ReadGlobalEventsAsync(string path, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
@@ -347,7 +346,7 @@ public static class ChartFile
     public static SyncTrack ReadSyncTrack(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(new() { SyncTrack = true }, config, null);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out SyncTrackParser? syncTrackParser) ? syncTrackParser!.Result! : new();
@@ -360,7 +359,7 @@ public static class ChartFile
     public static async Task<SyncTrack> ReadSyncTrackAsync(string path, ChartReadingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { SyncTrack = true }, config, null);
-        var reader = new ChartFileReader(path, session);
+        var reader = new ChartFileReader(new(path), session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out SyncTrackParser? syncTrackParser) ? syncTrackParser!.Result! : new();
