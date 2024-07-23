@@ -8,6 +8,7 @@ using ChartTools.IO.Chart.Serializing;
 using ChartTools.IO.Components;
 using ChartTools.IO.Configuration;
 using ChartTools.IO.Formatting;
+using ChartTools.IO.Sources;
 using ChartTools.Lyrics;
 
 namespace ChartTools.IO.Chart;
@@ -369,7 +370,7 @@ public static class ChartFile
 
     #region Writing
     private static void FillInstrumentsWriterData(InstrumentSet set, InstrumentComponentList components, ChartWritingSession session,
-        ICollection<Serializer<string>> serializers, ICollection<string> removedHeaders)
+        List<Serializer<string>> serializers, List<string> removedHeaders)
     {
         foreach (var identity in EnumCache<InstrumentIdentity>.Values)
         {
@@ -388,7 +389,7 @@ public static class ChartFile
         }
     }
 
-    private static ChartFileWriter GetSongWriter(string path, Song song, ComponentList components, ChartWritingSession session)
+    private static ChartFileWriter GetSongWriter(WritingDataSource source, Song song, ComponentList components, ChartWritingSession session)
     {
         var removedHeaders = new List<string>();
         var serializers = new List<Serializer<string>>();
@@ -417,7 +418,7 @@ public static class ChartFile
         if (song.UnknownChartSections is not null)
             serializers.AddRange(song.UnknownChartSections.Select(s => new UnknownSectionSerializer(s.Header, s, session)));
 
-        return new(path, removedHeaders, [.. serializers]);
+        return new(source, removedHeaders, [.. serializers]);
     }
 
     /// <summary>
@@ -427,51 +428,59 @@ public static class ChartFile
     /// <param name="song">Song to write</param>
     public static void WriteSong(string path, Song song, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(path, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
         writer.Write();
     }
 
     public static async Task WriteSongAsync(string path, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(path, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
     public static void ReplaceComponents(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(path, song, components, new(config, song.Metadata.Formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
         writer.Write();
     }
 
     public static async Task ReplaceComponentsAsync(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(path, song, components, new(config, song.Metadata.Formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetInstrumentsWriter(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
+    private static ChartFileWriter GetInstrumentsWriter(WritingDataSource source, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
     {
         var serializers = new List<Serializer<string>>();
         var removedHeaders = new List<string>();
 
         FillInstrumentsWriterData(set, components, session, serializers, removedHeaders);
 
-        return new(path, removedHeaders, [.. serializers]);
+        return new(source, removedHeaders, [.. serializers]);
     }
 
     public static void ReplaceInstruments(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var session = new ChartWritingSession(config, formatting);
-        var writer = GetInstrumentsWriter(path, set, components, new(config, formatting));
+        using var source = new WritingDataSource(path);
 
+        var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
         writer.Write();
     }
 
     public static async Task ReplaceInstrumentsAsync(string path, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var session = new ChartWritingSession(config, formatting);
-        var writer = GetInstrumentsWriter(path, set, components, new(config, formatting));
+        using var source = new WritingDataSource(path);
 
+        var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
@@ -490,34 +499,38 @@ public static class ChartFile
         var set = new InstrumentSet();
         set.Set(instrument);
 
-        await ReplaceInstrumentsAsync(path, set, new(instrument.InstrumentIdentity, diffs), config, formatting);
+        await ReplaceInstrumentsAsync(path, set, new(instrument.InstrumentIdentity, diffs), config, formatting, cancellationToken);
     }
 
-    private static ChartFileWriter GetTrackWriter(string path, Track track, ChartWritingSession session)
+    private static ChartFileWriter GetTrackWriter(WritingDataSource source, Track track, ChartWritingSession session)
     {
         if (track.ParentInstrument is null)
             throw new ArgumentNullException(nameof(track), "Cannot write track because it does not belong to an instrument.");
         if (!Enum.IsDefined(track.ParentInstrument.InstrumentIdentity))
             throw new ArgumentException("Cannot write track because the instrument it belongs to is unknown.", nameof(track));
 
-        return new(path, null, new TrackSerializer(track, session));
+        return new(source, null, new TrackSerializer(track, session));
     }
 
     [Obsolete($"Use {nameof(ReplaceInstrument)} with a {nameof(DifficultySet)}.")]
     public static void ReplaceTrack(string path, Track track, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var writer = GetTrackWriter(path, track, new(config, formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetTrackWriter(source, track, new(config, formatting));
         writer.Write();
     }
 
     [Obsolete($"Use {nameof(ReplaceInstrumentAsync)} with a {nameof(DifficultySet)}.")]
     public static async Task ReplaceTrackAsync(string path, Track track, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetTrackWriter(path, track, new(config, formatting));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetTrackWriter(source, track, new(config, formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetMetadataWriter(string path, Metadata metadata) => new(path, null, new MetadataSerializer(metadata));
+    private static ChartFileWriter GetMetadataWriter(WritingDataSource source, Metadata metadata) => new(source, null, new MetadataSerializer(metadata));
 
     /// <summary>
     /// Replaces the metadata in a file.
@@ -526,11 +539,13 @@ public static class ChartFile
     /// <param name="metadata">Metadata to write</param>
     public static void ReplaceMetadata(string path, Metadata metadata)
     {
-        var writer = GetMetadataWriter(path, metadata);
+        using var source = new WritingDataSource(path);
+
+        var writer = GetMetadataWriter(source, metadata);
         writer.Write();
     }
 
-    private static ChartFileWriter GetGlobalEventWriter(string path, IEnumerable<GlobalEvent> events, ChartWritingSession session) => new(path, null, new GlobalEventSerializer(events, session));
+    private static ChartFileWriter GetGlobalEventWriter(WritingDataSource source, IEnumerable<GlobalEvent> events, ChartWritingSession session) => new(source, null, new GlobalEventSerializer(events, session));
 
     /// <summary>
     /// Replaces the global events in a file.
@@ -539,17 +554,21 @@ public static class ChartFile
     /// <param name="events">Events to use as a replacement</param>
     public static void ReplaceGlobalEvents(string path, IEnumerable<GlobalEvent> events)
     {
-        var writer = GetGlobalEventWriter(path, events, new(DefaultWriteConfig, null));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         writer.Write();
     }
 
     public static async Task ReplaceGlobalEventsAsync(string path, IEnumerable<GlobalEvent> events, CancellationToken cancellationToken = default)
     {
-        var writer = GetGlobalEventWriter(path, events, new(DefaultWriteConfig, null));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         await writer.WriteAsync(cancellationToken);
     }
 
-    private static ChartFileWriter GetSyncTrackWriter(string path, SyncTrack syncTrack, ChartWritingSession session) => new(path, null, new SyncTrackSerializer(syncTrack, session));
+    private static ChartFileWriter GetSyncTrackWriter(WritingDataSource source, SyncTrack syncTrack, ChartWritingSession session) => new(source, null, new SyncTrackSerializer(syncTrack, session));
 
     /// <summary>
     /// Replaces the sync track in a file.
@@ -559,13 +578,17 @@ public static class ChartFile
     /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
     public static void ReplaceSyncTrack(string path, SyncTrack syncTrack, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSyncTrackWriter(path, syncTrack, new( config, null));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSyncTrackWriter(source, syncTrack, new( config, null));
         writer.Write();
     }
 
     public static async Task ReplaceSyncTrackAsync(string path, SyncTrack syncTrack, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSyncTrackWriter(path, syncTrack, new(config, null));
+        using var source = new WritingDataSource(path);
+
+        var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion

@@ -2,22 +2,21 @@
 using ChartTools.IO.Chart.Parsing;
 using ChartTools.IO.Components;
 using ChartTools.IO.Configuration;
-using ChartTools.IO.Parsing;
-using ChartTools.IO.Sources.Text;
+using ChartTools.IO.Sources;
 
 namespace ChartTools.IO.Chart;
 
 /// <summary>
 /// Reader of text file that sends read lines to subscribers of its events.
 /// </summary>
-internal class ChartFileReader(TextReadDataSource source, ChartReadingSession session) : TextFileReader(source)
+internal class ChartFileReader(ReadingDataSource source, ChartReadingSession session) : TextFileReader(source)
 {
     protected readonly ChartReadingSession session = session;
 
     public override IEnumerable<ChartParser> Parsers => base.Parsers.Cast<ChartParser>();
     public override bool DefinedSectionEnd => true;
 
-    protected override TextParser? GetParser(string header)
+    protected override ChartParser? GetParser(string header)
     {
         switch (header)
         {

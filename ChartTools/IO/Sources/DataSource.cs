@@ -1,18 +1,13 @@
 ﻿namespace ChartTools.IO.Sources;
 
-internal class DataSource : IDisposable
+internal abstract class DataSource(Stream stream) : IDisposable
 {
     public string? Path { get; }
-    public Stream? Stream { get; }
+    public Stream Stream { get; } = stream;
 
     private readonly bool _disposeStream = false;
 
-    // Invokable base for derived sources not using a path or stream. Should be exposed publicly with this signature - Data required
-    protected DataSource() { }
-
-    public DataSource(Stream stream) => Stream = stream;
-
-    public DataSource(string path) : this(new FileStream(path, FileMode.Open, FileAccess.Read))
+    public DataSource(string path, FileMode mode, FileAccess access) : this(new FileStream(path, mode, access))
     {
         Path = path;
         _disposeStream = true;

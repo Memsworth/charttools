@@ -1,9 +1,9 @@
 ﻿using ChartTools.IO.Parsing;
-using ChartTools.IO.Sources.Text;
+using ChartTools.IO.Sources;
 
 namespace ChartTools.IO.Ini;
 
-internal class IniFileReader(TextReadDataSource source, Metadata? existing) : TextFileReader(source)
+internal class IniFileReader(ReadingDataSource source, Metadata? existing) : TextFileReader(source)
 {
     public override IEnumerable<IniParser> Parsers => base.Parsers.Cast<IniParser>();
 

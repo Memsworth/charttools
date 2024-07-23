@@ -1,6 +1,7 @@
 ﻿using ChartTools.Extensions.Linq;
 using ChartTools.IO.Formatting;
 using ChartTools.IO.Configuration;
+using ChartTools.IO.Sources;
 
 namespace ChartTools.IO.Ini;
 
@@ -41,7 +42,9 @@ public static class IniFile
     /// <param name="metadata">Metadata to write</param>
     public static void WriteMetadata(string path, Metadata metadata)
     {
-        var writer = new IniFileWriter(path, new IniSerializer(metadata));
+        using var source = new WritingDataSource(path);
+
+        var writer = new IniFileWriter(source, new IniSerializer(metadata));
         writer.Write();
     }
 }

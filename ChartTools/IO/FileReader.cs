@@ -3,9 +3,9 @@ using ChartTools.IO.Sources;
 
 namespace ChartTools.IO;
 
-internal abstract class FileReader<T>(DataSource source) : IDisposable
+internal abstract class FileReader<T>(ReadingDataSource source) : IDisposable
 {
-    public DataSource Source { get; }
+    public DataSource Source { get; } = source;
 
     public bool IsReading { get; protected set; }
 
@@ -23,7 +23,7 @@ internal abstract class FileReader<T>(DataSource source) : IDisposable
     public virtual void Dispose() => Source.Dispose();
 }
 
-internal abstract class FileReader<T, TParser>(DataSource source) : FileReader<T>(source) where TParser : FileParser<T>
+internal abstract class FileReader<T, TParser>(ReadingDataSource source) : FileReader<T>(source) where TParser : FileParser<T>
 {
     public record ParserContentGroup(TParser Parser, DelayedEnumerableSource<T> Source);
 
@@ -65,8 +65,6 @@ internal abstract class FileReader<T, TParser>(DataSource source) : FileReader<T
 
     public override void Dispose()
     {
-        base.Dispose();
-
         foreach (var group in parserGroups)
             group.Source.Dispose();
 
