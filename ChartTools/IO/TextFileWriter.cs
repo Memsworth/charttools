@@ -42,7 +42,12 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
         using var writer = new StreamWriter(Source.Stream, leaveOpen: true);
 
         foreach (var line in GetLines(serializer => new EagerEnumerable<string>(serializer.SerializeAsync())))
+        {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
             await writer.WriteLineAsync(line);
+        }
     }
 
     private IEnumerable<string> GetLines(Func<Serializer<string>, IEnumerable<string>> getSerializerLines)
@@ -57,7 +62,7 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
 
         IEnumerable<string> ReadExisting()
         {
-            using var reader = new StreamReader(Source.Existing.Stream!, leaveOpen: true);
+            using var reader = new StreamReader(Source.Existing.Stream, leaveOpen: true);
 
             var line = string.Empty;
 
