@@ -8,5 +8,5 @@ internal class ReadingDataSource : DataSource
             throw new ArgumentException("Stream is unable to be read.", nameof(stream));
     }
 
-    public ReadingDataSource(string path) : base(path, FileMode.Open, FileAccess.Read) { }
+    public ReadingDataSource(string path) : base(path, FileMode.Open, FileAccess.Read, FileShare.Write) { }
 }

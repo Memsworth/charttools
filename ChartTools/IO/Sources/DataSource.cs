@@ -7,7 +7,7 @@ internal abstract class DataSource(Stream stream) : IDisposable
 
     private readonly bool _disposeStream = false;
 
-    public DataSource(string path, FileMode mode, FileAccess access) : this(new FileStream(path, mode, access))
+    public DataSource(string path, FileMode mode, FileAccess access, FileShare share) : this(new FileStream(path, mode, access, share))
     {
         Path = path;
         _disposeStream = true;

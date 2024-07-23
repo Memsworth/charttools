@@ -12,7 +12,7 @@ internal class WritingDataSource : DataSource
         Existing = existing;
     }
 
-    public WritingDataSource(string path, ReadingDataSource? existing = null) : base(path, FileMode.OpenOrCreate, FileAccess.Write)
+    public WritingDataSource(string path, ReadingDataSource? existing = null) : base(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)
         => Existing = existing;
 
     public override void Dispose()
