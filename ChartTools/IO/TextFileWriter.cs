@@ -14,8 +14,6 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
     private readonly List<Serializer<string>> serializers = [..serializers];
     private readonly IEnumerable<string>? removedHeaders = removedHeaders;
 
-    private IEnumerable<SectionReplacement<string>> AddRemoveReplacements(IEnumerable<SectionReplacement<string>> replacements) => removedHeaders is null ? replacements : replacements.Concat(removedHeaders.Select(header => new SectionReplacement<string>(Enumerable.Empty<string>(), line => line == header, EndReplace, false)));
-
     private IEnumerable<string> Wrap(string header, IEnumerable<string> lines)
     {
         yield return header;
@@ -32,9 +30,12 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
 
     public void Write()
     {
-        using var writer = new StreamWriter(Source.Stream, leaveOpen: true);
+        foreach (var serializer in serializers)
+            serializer.Serialize();
 
-        foreach (var line in GetLines(serializer => serializer.Serialize()))
+        using StreamWriter writer = new(Source.Stream, leaveOpen: true);
+
+        foreach (var line in GetLinesToWrite(serializer => serializer.Serialize()))
             writer.WriteLine(line);
 
         EndFile();
@@ -43,8 +44,9 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
     public async Task WriteAsync(CancellationToken cancellationToken)
     {
         using var writer = new StreamWriter(Source.Stream, leaveOpen: true);
+        var serializerResults = serializers.ToDictionary(ser => ser, ser => new EagerEnumerable<string>(ser.SerializeAsync()));
 
-        foreach (var line in GetLines(serializer => new EagerEnumerable<string>(serializer.SerializeAsync())))
+        foreach (var line in GetLinesToWrite(ser => serializerResults[ser]))
         {
             if (cancellationToken.IsCancellationRequested)
                 break;
@@ -57,25 +59,47 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
 
     private void EndFile() => Source.Stream.SetLength(Source.Stream.Position);
 
-    private IEnumerable<string> GetLines(Func<Serializer<string>, IEnumerable<string>> getSerializerLines)
+    private List<string>? GetExistingLines()
     {
-        return Source.Existing is not null
-            ? ReadExisting()
-            .ReplaceSections(
-                AddRemoveReplacements(from serializer in serializers select new SectionReplacement<string>(
-                        Wrap(serializer.Header, getSerializerLines(serializer)),
-                    line => line == serializer.Header, EndReplace, true)))
-            : serializers.SelectMany(serializer => Wrap(serializer.Header, serializer.Serialize()));
+        List<string>? lines = null;
 
-        IEnumerable<string> ReadExisting()
+        if (Source.Existing is not null)
         {
-            using var reader = new StreamReader(Source.Existing.Stream, leaveOpen: true);
+            lines = [];
+            string? line = null;
 
-            var line = string.Empty;
+            using StreamReader reader = new(Source.Existing.Stream, leaveOpen: true);
+            string content = reader.ReadToEnd();
 
-            while ((line = reader.ReadLine()) != null)
-                yield return line;
+            while ((line = reader.ReadLine()) is not null)
+                lines.Add(line);
         }
+
+        return lines;
+    }
+
+    private IEnumerable<string> GetLinesToWrite(Func<Serializer<string>, IEnumerable<string>> getSerializerLines)
+    {
+        // Using the reader stream can modify the position of the write stream if both are connected
+        var initialWriterPosition = Source.Stream.Position;
+        var existing = GetExistingLines();
+
+        Source.Stream.Position = initialWriterPosition;
+
+        if (existing?.Count > 0)
+        {
+            var replacements = from serializer in serializers
+                               select new SectionReplacement<string>(
+                                   Wrap(serializer.Header, getSerializerLines(serializer)),
+                                   line => line == serializer.Header, EndReplace, true);
+
+            if (removedHeaders is not null)
+                replacements = replacements.Concat(removedHeaders.Select(header => new SectionReplacement<string>([], line => line == header, EndReplace, false)));
+
+            return existing.ReplaceSections(replacements);
+        }
+        else
+            return serializers.SelectMany(serializer => Wrap(serializer.Header, getSerializerLines(serializer)));
     }
 
     protected abstract bool EndReplace(string line);
