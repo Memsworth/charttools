@@ -1,6 +1,6 @@
 ﻿namespace ChartTools.IO.Sources;
 
-internal abstract class DataSource(Stream stream) : IDisposable
+public abstract class DataSource(Stream stream) : IDisposable
 {
     public string? Path { get; }
     public Stream Stream { get; } = stream;

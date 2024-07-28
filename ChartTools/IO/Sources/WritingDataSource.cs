@@ -1,6 +1,6 @@
 ﻿namespace ChartTools.IO.Sources;
 
-internal class WritingDataSource : DataSource
+public class WritingDataSource : DataSource
 {
     public ReadingDataSource? Existing { get; }
 

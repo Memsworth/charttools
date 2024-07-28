@@ -45,7 +45,7 @@ public abstract class Event : ITrackObject
         get => Argument is null ? EventType : string.Join(' ', EventType, Argument);
         set
         {
-            var split = value.Split(' ', 2, StringSplitOptions.None);
+            var split = value.Split(' ', 2);
 
             EventType = split[0];
             Argument = split.Length > 1 ? split[1] : string.Empty;

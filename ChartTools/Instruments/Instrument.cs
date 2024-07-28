@@ -46,7 +46,7 @@ public abstract record Instrument : IEmptyVerifiable
     /// <summary>
     /// Set of special phrases applied to all difficulties
     /// </summary>
-    public List<InstrumentSpecialPhrase> SpecialPhrases { get; set; } = [];
+    public List<InstrumentSpecialPhrase> SharedSpecialPhrases { get; set; } = [];
 
     /// <inheritdoc cref="InstrumentDifficultySet.GetDifficulty(InstrumentIdentity)"/>
     public sbyte? GetDifficulty(InstrumentDifficultySet difficulties) => difficulties.GetDifficulty(InstrumentIdentity);
@@ -57,14 +57,17 @@ public abstract record Instrument : IEmptyVerifiable
     /// Easy track
     /// </summary>
     public Track? Easy => GetEasy();
+
     /// <summary>
     /// Medium track
     /// </summary>
     public Track? Medium => GetMedium();
+
     /// <summary>
     /// Hard track
     /// </summary>
     public Track? Hard => GetHard();
+
     /// <summary>
     /// Expert track
     /// </summary>
@@ -85,16 +88,19 @@ public abstract record Instrument : IEmptyVerifiable
     /// </summary>
     /// <param name="difficulty">Difficulty of the track</param>
     public abstract Track CreateTrack(DiffEnum difficulty);
+
     /// <summary>
     /// Removes a track.
     /// </summary>
     /// <param name="difficulty">Difficulty of the target track</param>
     public abstract bool RemoveTrack(DiffEnum difficulty);
 
+
     /// <summary>
     /// Creates an array containing all tracks.
     /// </summary>
     public virtual Track?[] GetTracks() => [Easy, Medium, Hard, Expert];
+
     /// <summary>
     /// Creates an array containing all tracks with data.
     /// </summary>

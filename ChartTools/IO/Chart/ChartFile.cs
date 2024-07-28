@@ -25,10 +25,10 @@ public static class ChartFile
     {
         DuplicateTrackObjectPolicy = DuplicateTrackObjectPolicy.ThrowException,
         OverlappingStarPowerPolicy = OverlappingSpecialPhrasePolicy.ThrowException,
-        SnappedNotesPolicy         = SnappedNotesPolicy.ThrowException,
-        SoloNoStarPowerPolicy      = SoloNoStarPowerPolicy.Convert,
-        TempolessAnchorPolicy      = TempolessAnchorPolicy.ThrowException,
-        UnknownSectionPolicy       = UnknownSectionPolicy.ThrowException
+        SnappedNotesPolicy = SnappedNotesPolicy.ThrowException,
+        SoloNoStarPowerPolicy = SoloNoStarPowerPolicy.Convert,
+        TempolessAnchorPolicy = TempolessAnchorPolicy.ThrowException,
+        UnknownSectionPolicy = UnknownSectionPolicy.ThrowException
     };
 
     /// <summary>
@@ -38,9 +38,9 @@ public static class ChartFile
     {
         DuplicateTrackObjectPolicy = DuplicateTrackObjectPolicy.ThrowException,
         OverlappingStarPowerPolicy = OverlappingSpecialPhrasePolicy.ThrowException,
-        SoloNoStarPowerPolicy      = SoloNoStarPowerPolicy.Convert,
-        SnappedNotesPolicy         = SnappedNotesPolicy.ThrowException,
-        UnsupportedModifierPolicy  = UnsupportedModifierPolicy.ThrowException
+        SoloNoStarPowerPolicy = SoloNoStarPowerPolicy.Convert,
+        SnappedNotesPolicy = SnappedNotesPolicy.ThrowException,
+        UnsupportedModifierPolicy = UnsupportedModifierPolicy.ThrowException
     };
 
     #region Reading
@@ -63,37 +63,60 @@ public static class ChartFile
     /// <param name="path"><inheritdoc cref="Song.FromFile(string, ReadingConfiguration?, FormattingRules?)" path="/param[@name='path']"/></param>
     /// <param name="config"><inheritdoc cref="Song.FromFile(string, ReadingConfiguration?, FormattingRules?)" path="/param[@name='config']"/></param>
     public static Song ReadSong(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadSong(new ReadingDataSource(path), config, formatting);
+
+    public static Song ReadSong(Stream stream, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadSong(new ReadingDataSource(stream), config, formatting);
+
+    public static Song ReadSong(ReadingDataSource source, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateSongFromReader(reader);
     }
 
-    public static async Task<Song> ReadSongAsync(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static Task<Song> ReadSongAsync(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => ReadSongAsync(new ReadingDataSource(path), config, formatting, cancellationToken);
+
+    public static Task<Song> ReadSongAsync(Stream stream, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => ReadSongAsync(new ReadingDataSource(stream), config, formatting, cancellationToken);
+
+    public static async Task<Song> ReadSongAsync(ReadingDataSource source, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
     }
 
     public static Song ReadComponents(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadComponents(new ReadingDataSource(path), components, config, formatting);
+
+    public static Song ReadComponents(Stream stream, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    => ReadComponents(new ReadingDataSource(stream), components, config, formatting);
+
+    public static Song ReadComponents(ReadingDataSource source, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateSongFromReader(reader);
     }
 
-    public static async Task<Song> ReadComponentsAsync(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-    {
+    public static Task<Song> ReadComponentsAsync(string path, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => ReadComponentsAsync(new ReadingDataSource(path), components, config, formatting, cancellationToken);
 
+    public static Task<Song> ReadComponentsAsync(Stream stream, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    => ReadComponentsAsync(new ReadingDataSource(stream), components, config, formatting, cancellationToken);
+
+    public static async Task<Song> ReadComponentsAsync(ReadingDataSource source, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    {
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
@@ -140,18 +163,30 @@ public static class ChartFile
     }
 
     public static InstrumentSet ReadInstruments(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+        => ReadInstruments(new ReadingDataSource(path), components, config, formatting);
+
+    public static InstrumentSet ReadInstruments(Stream stream, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    => ReadInstruments(new ReadingDataSource(stream), components, config, formatting);
+
+    public static InstrumentSet ReadInstruments(ReadingDataSource source, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateInstrumentSetFromReader(reader);
     }
 
-    public static async Task<InstrumentSet> ReadInstrumentsAsync(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    public static Task<InstrumentSet> ReadInstrumentsAsync(string path, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+        => ReadInstrumentsAsync(new ReadingDataSource(path), components, config, formatting, cancellationToken);
+
+    public static Task<InstrumentSet> ReadInstrumentsAsync(Stream stream, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
+    => ReadInstrumentsAsync(new ReadingDataSource(stream), components, config, formatting, cancellationToken);
+
+    public static async Task<InstrumentSet> ReadInstrumentsAsync(ReadingDataSource source, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateInstrumentSetFromReader(reader);
@@ -284,44 +319,75 @@ public static class ChartFile
     #endregion
 
     #region Metadata
+
+    public static Metadata ReadMetadata(string path)
+        => ReadMetadata(new ReadingDataSource(path));
+
+    public static Metadata ReadMetadata(Stream stream)
+        => ReadMetadata(new ReadingDataSource(stream));
+
     /// <summary>
     /// Reads metadata from a chart file.
     /// </summary>
-    /// <param name="path">Path of the file to read</param>
-    public static Metadata ReadMetadata(string path)
+    public static Metadata ReadMetadata(ReadingDataSource source)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         reader.Read();
+        return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
+    }
+
+    public static Task<Metadata> ReadMetadata(string path, CancellationToken cancellationToken = default)
+       => ReadMetadata(new ReadingDataSource(path), cancellationToken);
+
+    public static Task<Metadata> ReadMetadata(Stream stream, CancellationToken cancellationToken = default)
+        => ReadMetadata(new ReadingDataSource(stream), cancellationToken);
+
+    public static async Task<Metadata> ReadMetadata(ReadingDataSource source, CancellationToken cancellationToken = default)
+    {
+        var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
+        var reader = new ChartFileReader(source, session);
+
+        await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
     }
     #endregion
 
     #region Global events
-    /// <inheritdoc cref="GlobalEvent.FromFile(string)"/>
-    /// <param name="path"><inheritdoc cref="GlobalEvent.FromFile(string)" path="/param[@name='path']"/></param>
     public static List<GlobalEvent> ReadGlobalEvents(string path)
+        => ReadGlobalEvents(new ReadingDataSource(path));
+
+    public static List<GlobalEvent> ReadGlobalEvents(Stream stream)
+    => ReadGlobalEvents(new ReadingDataSource(stream));
+
+    public static List<GlobalEvent> ReadGlobalEvents(ReadingDataSource source)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
     }
 
-    /// <inheritdoc cref="GlobalEvent.FromFileAsync(string, CancellationToken)"/>
-    /// <param name="path"><inheritdoc cref="GlobalEvent.FromFileAsync(string, CancellationToken)" path="/param[@name='path']"/></param>
-    /// <param name="cancellationToken"><inheritdoc cref="GlobalEvent.FromFileAsync(string, CancellationToken)" path="/param[@name='cancellationToken']"/></param>
-    /// <returns></returns>
-    public static async Task<List<GlobalEvent>> ReadGlobalEventsAsync(string path, CancellationToken cancellationToken = default)
+    public static Task<List<GlobalEvent>> ReadGlobalEventsAsync(string path, CancellationToken cancellationToken = default)
+        => ReadGlobalEventsAsync(new ReadingDataSource(path), cancellationToken);
+
+    public static Task<List<GlobalEvent>> ReadGlobalEventsAsync(Stream stream, CancellationToken cancellationToken = default)
+    => ReadGlobalEventsAsync(new ReadingDataSource(stream), cancellationToken);
+
+    public static async Task<List<GlobalEvent>> ReadGlobalEventsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(new(path), session);
+        var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
     }
+
+    public static IEnumerable<Phrase> ReadLyrics(string path) => ReadLyrics(new ReadingDataSource(path));
+
+    public static IEnumerable<Phrase> ReadLyrics(Stream stream) => ReadLyrics(new ReadingDataSource(stream));
 
     /// <summary>
     /// Reads lyrics from a chart file.
@@ -329,15 +395,20 @@ public static class ChartFile
     /// <returns>Enumerable of <see cref="Phrase"/> containing the lyrics from the file</returns>
     /// <param name="path">Path of the file to read</param>
     /// <inheritdoc cref="ReadGlobalEvents(string)" path="/exception"/>
-    public static IEnumerable<Phrase> ReadLyrics(string path) => ReadGlobalEvents(path).GetLyrics();
+    public static IEnumerable<Phrase> ReadLyrics(ReadingDataSource source) => ReadGlobalEvents(source).GetLyrics();
+
+    public static Task<IEnumerable<Phrase>> ReadLyricsAsync(string path, CancellationToken cancellationToken = default)
+        => ReadLyricsAsync(new ReadingDataSource(path), cancellationToken);
+
+    public static Task<IEnumerable<Phrase>> ReadLyricsAsync(Stream stream, CancellationToken cancellationToken = default)
+    => ReadLyricsAsync(new ReadingDataSource(stream), cancellationToken);
 
     /// <summary>
     /// Reads lyrics from a chart file asynchronously using multitasking.
     /// </summary>
-    /// <param name="path"><inheritdoc cref="ReadLyrics(string)" path="/param[@name='path']"/></param>
     /// <param name="cancellationToken">Token to request cancellation</param>
-    public static async Task<IEnumerable<Phrase>> ReadLyricsAsync(string path, CancellationToken cancellationToken = default)
-        => (await ReadGlobalEventsAsync(path, cancellationToken)).GetLyrics();
+    public static async Task<IEnumerable<Phrase>> ReadLyricsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
+        => (await ReadGlobalEventsAsync(source, cancellationToken)).GetLyrics();
     #endregion
 
     #region Sync track
@@ -372,7 +443,10 @@ public static class ChartFile
     private static void FillInstrumentsWriterData(InstrumentSet set, InstrumentComponentList components, ChartWritingSession session,
         List<Serializer<string>> serializers, List<string> removedHeaders)
     {
-        foreach (var identity in EnumCache<InstrumentIdentity>.Values)
+        foreach (var identity in
+            EnumCache<StandardInstrumentIdentity>.Values.Cast<InstrumentIdentity>()
+            .Concat(EnumCache<GHLInstrumentIdentity>.Values.Cast<InstrumentIdentity>())
+            .Append(InstrumentIdentity.Drums))
         {
             var tracks = components.Map(identity);
 
@@ -421,39 +495,66 @@ public static class ChartFile
         return new(source, removedHeaders, [.. serializers]);
     }
 
+    public static void WriteSong(string path, Song song, ChartWritingConfiguration? config = default)
+        => WriteSong(new WritingDataSource(path), song, config);
+    public static void WriteSong(Stream stream, Song song, ChartWritingConfiguration? config = default)
+    => WriteSong(new WritingDataSource(stream), song, config);
+
     /// <summary>
     /// Writes a song to a chart file.
     /// </summary>
     /// <param name="path">Path of the file to write</param>
     /// <param name="song">Song to write</param>
-    public static void WriteSong(string path, Song song, ChartWritingConfiguration? config = default)
+    public static void WriteSong(WritingDataSource source, Song song, ChartWritingConfiguration? config = default)
     {
-        using var source = new WritingDataSource(path);
-
         var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
         writer.Write();
     }
 
-    public static async Task WriteSongAsync(string path, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
-    {
-        using var source = new WritingDataSource(path);
+    public static Task WriteSongAsync(string path, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+        => WriteSongAsync(new WritingDataSource(path), song, config, cancellationToken);
 
+    public static Task WriteSongAsync(Stream stream, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    => WriteSongAsync(new WritingDataSource(stream), song, config, cancellationToken);
+
+    public static async Task WriteSongAsync(WritingDataSource source, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    {
         var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
 
     public static void ReplaceComponents(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default)
-    {
-        using var source = new WritingDataSource(path);
+        => ReplaceComponents(new WritingDataSource(path), song, components, config);
 
+    public static void ReplaceComponents(Stream stream, Song song, ComponentList components, ChartWritingConfiguration? config = default)
+        => ReplaceComponents(new WritingDataSource(stream), song, components, config);
+
+    public static void ReplaceComponents(string path, string existing, Song song, ComponentList components, ChartWritingConfiguration? config = default)
+        => ReplaceComponents(new WritingDataSource(path, new ReadingDataSource(existing)), song, components, config);
+
+    public static void ReplaceComponents(Stream stream, Stream existing, Song song, ComponentList components, ChartWritingConfiguration? config = default)
+        => ReplaceComponents(new WritingDataSource(stream, new ReadingDataSource(existing)), song, components, config);
+
+    public static void ReplaceComponents(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default)
+    {
         var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
         writer.Write();
     }
 
-    public static async Task ReplaceComponentsAsync(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
-    {
-        using var source = new WritingDataSource(path);
+    public static Task ReplaceComponentsAsync(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+        => ReplaceComponentsAsync(new WritingDataSource(path), song, components, config, cancellationToken);
 
+    public static Task ReplaceComponentsAsync(Stream stream, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    => ReplaceComponentsAsync(new WritingDataSource(stream), song, components, config, cancellationToken);
+
+    public static Task ReplaceComponentsAsync(string path, string existing, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    => ReplaceComponentsAsync(new WritingDataSource(path, new(existing)), song, components, config, cancellationToken);
+
+    public static Task ReplaceComponentsAsync(Stream stream, Stream existing, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    => ReplaceComponentsAsync(new WritingDataSource(stream, new(existing)), song, components, config, cancellationToken);
+
+    public static async Task ReplaceComponentsAsync(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+    {
         var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
@@ -580,7 +681,7 @@ public static class ChartFile
     {
         using var source = new WritingDataSource(path);
 
-        var writer = GetSyncTrackWriter(source, syncTrack, new( config, null));
+        var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
         writer.Write();
     }
 

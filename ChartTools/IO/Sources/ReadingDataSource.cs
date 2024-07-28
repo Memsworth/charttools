@@ -1,6 +1,6 @@
 ﻿namespace ChartTools.IO.Sources;
 
-internal class ReadingDataSource : DataSource
+public class ReadingDataSource : DataSource
 {
     public ReadingDataSource(Stream stream) : base(stream)
     {
