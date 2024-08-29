@@ -26,14 +26,10 @@ public class TrackSpecialPhrase : SpecialPhrase
     /// <param name="type">Effect of the phrase</param>
     /// <inheritdoc cref="SpecialPhrase(uint, byte, uint)"/>
     public TrackSpecialPhrase(uint position, TrackSpecialPhraseType type, uint length = 0) : base(position, (byte)type, length) { }
+
     /// <summary>
     /// <inheritdoc cref="TrackSpecialPhrase(uint, TrackSpecialPhraseType, uint)"/>
     /// </summary>
     /// <inheritdoc cref="SpecialPhrase(uint, byte, uint)"/>
     public TrackSpecialPhrase(uint position, byte typeCode, uint length = 0) : base(position, typeCode, length) { }
-
-    public override bool Equals(object? obj) => Equals(obj as TrackSpecialPhrase);
-    public bool Equals(TrackSpecialPhrase? other) => base.Equals(other);
-
-    public override int GetHashCode() => base.GetHashCode();
 }

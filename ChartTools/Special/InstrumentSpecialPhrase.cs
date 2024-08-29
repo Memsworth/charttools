@@ -29,9 +29,4 @@ public class InstrumentSpecialPhrase : SpecialPhrase
     /// </summary>
     /// <inheritdoc cref="SpecialPhrase(uint, byte, uint)"/>
     public InstrumentSpecialPhrase(uint position, byte typeCode, uint length = 0) : base(position, typeCode, length) { }
-
-    public override bool Equals(object? obj) => Equals(obj as TrackSpecialPhrase);
-    public bool Equals(TrackSpecialPhrase? other) => base.Equals(other);
-
-    public override int GetHashCode() => base.GetHashCode();
 }

@@ -30,11 +30,13 @@ public readonly struct VocalsPitch : IEquatable<VocalsPitch>, IEquatable<VocalPi
     /// </summary>
     /// <param name="other">Pitch to compare</param>
     public bool Equals(VocalsPitch other) => Value == other.Value;
+
     /// <summary>
     /// Indicates if a pitch has a value equal to a raw pitch value.
     /// </summary>
     /// <param name="other">Value to compare</param>
     public bool Equals(VocalPitchValue other) => Value == other;
+
     /// <summary>
     /// Indicates if an object is a raw pitch value or wrapper and the value is equal.
     /// </summary>
