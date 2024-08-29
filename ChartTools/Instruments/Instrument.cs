@@ -2,6 +2,8 @@
 using ChartTools.Extensions.Linq;
 using ChartTools.IO.Configuration;
 
+using System.Diagnostics;
+
 using DiffEnum = ChartTools.Difficulty;
 
 namespace ChartTools;
@@ -9,6 +11,7 @@ namespace ChartTools;
 /// <summary>
 /// Base class for instruments
 /// </summary>
+[DebuggerDisplay("{InstrumentIdentity}")]
 public abstract record Instrument : IEmptyVerifiable
 {
     /// <inheritdoc cref="IEmptyVerifiable.IsEmpty"/>
@@ -34,7 +37,6 @@ public abstract record Instrument : IEmptyVerifiable
                 InstrumentIdentity.Drums => InstrumentType.Drums,
                 InstrumentIdentity.LeadGuitar or InstrumentIdentity.RhythmGuitar or InstrumentIdentity.Bass or InstrumentIdentity.CoopGuitar or InstrumentIdentity.GHLBass or InstrumentIdentity.Keys => InstrumentType.Standard,
                 InstrumentIdentity.GHLGuitar or InstrumentIdentity.GHLBass => InstrumentType.GHL,
-                InstrumentIdentity.Vocals => InstrumentType.Vocals,
                 _ => throw new InvalidDataException($"Instrument identity {InstrumentIdentity} does not belong to an instrument type.")
             };
 
@@ -140,6 +142,4 @@ public abstract record Instrument : IEmptyVerifiable
 
         return objects;
     }
-
-    public override string ToString() => InstrumentIdentity.ToString();
 }

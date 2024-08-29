@@ -4,11 +4,14 @@ using ChartTools.IO.Chart;
 using ChartTools.IO.Configuration;
 using ChartTools.IO.Formatting;
 
+using System.Diagnostics;
+
 namespace ChartTools;
 
 /// <summary>
 /// Base class for tracks
 /// </summary>
+[DebuggerDisplay("{Difficulty}")]
 public abstract record Track : IEmptyVerifiable
 {
     /// <inheritdoc cref="IEmptyVerifiable.IsEmpty"/>
@@ -18,18 +21,21 @@ public abstract record Track : IEmptyVerifiable
     /// Difficulty of the track
     /// </summary>
     public Difficulty Difficulty { get; init; }
+
     /// <summary>
     /// Instrument containing the track
     /// </summary>
     public Instrument? ParentInstrument => GetInstrument();
+
     /// <summary>
     /// Events specific to the <see cref="Track"/>
     /// </summary>
-    public List<LocalEvent> LocalEvents { get; } = new();
+    public List<LocalEvent> LocalEvents { get; } = [];
+
     /// <summary>
     /// Set of special phrases
     /// </summary>
-    public List<TrackSpecialPhrase> SpecialPhrases { get; } = new();
+    public List<TrackSpecialPhrase> SpecialPhrases { get; } = [];
 
     /// <summary>
     /// Groups of notes of the same position
@@ -128,6 +134,4 @@ public abstract record Track : IEmptyVerifiable
 
     [Obsolete($"Use {nameof(ChartFile.ReplaceInstrumentsAsync)} with a component list.")]
     public async Task ToFileAsync(string path, WritingConfiguration? config = default,FormattingRules? formatting = default, CancellationToken cancellationToken = default) => await ExtensionHandler.WriteAsync(path, this, (".chart", (path, track) => ChartFile.ReplaceTrackAsync(path, track, config?.Chart, formatting, cancellationToken)));
-
-    public override string ToString() => Difficulty.ToString();
 }
