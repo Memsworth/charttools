@@ -18,48 +18,25 @@ public class Song
     /// <summary>
     /// Set of information about the song not unrelated to instruments, syncing or events
     /// </summary>
-    public Metadata Metadata
-    {
-        get => _metadata;
-        set => _metadata = value ?? throw new ArgumentNullException(nameof(value));
-    }
-    private Metadata _metadata = new();
+    public Metadata Metadata { get; set; } = new();
 
     /// <inheritdoc cref="FormattingRules"/>
-    public FormattingRules Formatting
-    {
-        get => _formatting;
-        set => _formatting = value ?? throw new ArgumentNullException(nameof(value));
-    }
-    private FormattingRules _formatting = new();
+    public FormattingRules Formatting { get; set; } = new();
 
     /// <inheritdoc cref="ChartTools.SyncTrack"/>
-    public SyncTrack SyncTrack
-    {
-        get => _syncTrack;
-        set => _syncTrack = value ?? throw new ArgumentNullException(nameof(value));
-    }
-    private SyncTrack _syncTrack = new();
+    public SyncTrack SyncTrack { get; set; } = new();
 
     /// <summary>
     /// List of events common to all instruments
     /// </summary>
-    public List<GlobalEvent> GlobalEvents
-    {
-        get => _globalEvents;
-        set => _globalEvents = value ?? throw new ArgumentNullException(nameof(value));
-    }
-    private List<GlobalEvent> _globalEvents = new();
+    public List<GlobalEvent> GlobalEvents { get; set; } = [];
 
     /// <inheritdoc cref="InstrumentSet"/>
-    public InstrumentSet Instruments
-    {
-        get => _instruments;
-        set => _instruments = value ?? throw new ArgumentNullException(nameof(value));
-    }
-    private InstrumentSet _instruments = new();
+    public InstrumentSet Instruments { get; set; } = new();
 
-    public ChartSection? UnknownChartSections { get; set; }
+    public Vocals Vocals { get; set; } = new();
+
+    public ChartSection? UnknownChartSections { get; set; } = [];
 
     #region Reading
     /// <summary>
@@ -111,14 +88,4 @@ public class Song
     /// <exception cref="System.Security.SecurityException"/>
     public void ToFile(string path, WritingConfiguration? config = default) => ExtensionHandler.Write(path, this, (".chart", (path, song) => ChartFile.WriteSong(path, song, config?.Chart)));
     public async Task ToFileAsync(string path, WritingConfiguration? config = default, CancellationToken cancellationToken = default) => await ExtensionHandler.WriteAsync(path, this, (".chart", (path, song) => ChartFile.WriteSongAsync(path, song, config?.Chart, cancellationToken)));
-
-    /// <summary>
-    /// Retrieves the lyrics from the global events.
-    /// </summary>
-    public IEnumerable<Phrase> GetLyrics() => GlobalEvents is null ? Enumerable.Empty<Phrase>() : GlobalEvents.GetLyrics();
-    /// <summary>
-    /// Replaces phrase and lyric events from <see cref="GlobalEvents"/> with the ones making up a set of <see cref="Phrase"/>.
-    /// </summary>
-    /// <param name="phrases">Phrases to use as a replacement</param>
-    public void SetLyrics(IEnumerable<Phrase> phrases) => GlobalEvents = (GlobalEvents ?? new()).SetLyrics(phrases).ToList();
 }

@@ -26,6 +26,7 @@ public class TrackSpecialPhrase : SpecialPhrase
     /// <param name="type">Effect of the phrase</param>
     /// <inheritdoc cref="SpecialPhrase(uint, byte, uint)"/>
     public TrackSpecialPhrase(uint position, TrackSpecialPhraseType type, uint length = 0) : base(position, (byte)type, length) { }
+
     /// <summary>
     /// <inheritdoc cref="TrackSpecialPhrase(uint, TrackSpecialPhraseType, uint)"/>
     /// </summary>

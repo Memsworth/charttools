@@ -8,7 +8,8 @@ public record Track<TChord> : Track where TChord : IChord
     /// <summary>
     /// Chords making up the difficulty track.
     /// </summary>
-    public new List<TChord> Chords { get; } = new();
+    public new List<TChord> Chords { get; } = [];
+
     /// <summary>
     /// Instrument the track is held in.
     /// </summary>
@@ -19,6 +20,7 @@ public record Track<TChord> : Track where TChord : IChord
     /// </summary>
     /// <returns></returns>
     protected override IReadOnlyList<IChord> GetChords() => (IReadOnlyList<IChord>)Chords;
+
     /// <summary>
     /// Gets the parent instrument as an instance of the base type.
     /// </summary>

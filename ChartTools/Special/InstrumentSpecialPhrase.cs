@@ -24,6 +24,7 @@ public class InstrumentSpecialPhrase : SpecialPhrase
     /// <param name="type">Effect of the phrase</param>
     /// <inheritdoc cref="SpecialPhrase(uint, byte, uint)"/>
     public InstrumentSpecialPhrase(uint position, InstrumentSpecialPhraseType type, uint length = 0) : base(position, (byte)type, length) { }
+
     /// <summary>
     /// <inheritdoc cref="InstrumentSpecialPhrase(uint, InstrumentSpecialPhraseType, uint)"/>
     /// </summary>

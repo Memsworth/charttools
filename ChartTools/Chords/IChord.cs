@@ -3,7 +3,7 @@
 /// <summary>
 /// Set of notes tied together.
 /// </summary>
-/// <remarks>Depending on the chord type, notes will be on the same position or in sequence.</remarks>
+/// <remarks>Depending on the chord type, notes will be on the same position.</remarks>
 public interface IChord : ITrackObject
 {
     /// <summary>

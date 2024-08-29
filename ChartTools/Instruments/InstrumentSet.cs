@@ -85,8 +85,6 @@ public class InstrumentSet : IEnumerable<Instrument>
     }
     private StandardInstrument? _keys;
 
-    public Vocals? Vocals { get; set; }
-
     /// <summary>
     /// Gets property value for an <see cref="Instrument"/> from a <see cref="InstrumentIdentity"/> <see langword="enum"/> value.
     /// </summary>
@@ -102,7 +100,6 @@ public class InstrumentSet : IEnumerable<Instrument>
         InstrumentIdentity.CoopGuitar => CoopGuitar,
         InstrumentIdentity.Bass => Bass,
         InstrumentIdentity.Keys => Keys,
-        InstrumentIdentity.Vocals => Vocals,
         _ => throw new UndefinedEnumException(instrument)
     };
     /// <summary>
@@ -134,9 +131,6 @@ public class InstrumentSet : IEnumerable<Instrument>
         {
             case InstrumentIdentity.Drums:
                 Drums = (Drums)instrument;
-                break;
-            case InstrumentIdentity.Vocals:
-                Vocals = (Vocals)instrument;
                 break;
             case InstrumentIdentity.LeadGuitar:
                 _leadGuitar = (StandardInstrument)instrument;

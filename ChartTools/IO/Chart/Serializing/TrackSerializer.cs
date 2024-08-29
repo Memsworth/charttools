@@ -46,12 +46,12 @@ internal class TrackSerializer(Track content, ChartWritingSession session)
             Content.LocalEvents.RemoveWhere(e => e.IsSoloEvent);
         }
 
-        return new IEnumerable<TrackObjectEntry>[]
-        {
+        return
+        [
             new ChordProvider().ProvideFor(Content.Chords.Cast<LaneChord>(), session),
             new SpeicalPhraseProvider().ProvideFor(Content.SpecialPhrases, session!),
-            Content.LocalEvents is null ? Enumerable.Empty<TrackObjectEntry>() : new EventProvider().ProvideFor(Content.LocalEvents!, session!)
-        };
+            Content.LocalEvents is null ? [] : new EventProvider().ProvideFor(Content.LocalEvents!, session!)
+        ];
     }
 
     private static void ApplyOverlappingSpecialPhrasePolicy(IEnumerable<TrackSpecialPhrase> specialPhrases, OverlappingSpecialPhrasePolicy policy)

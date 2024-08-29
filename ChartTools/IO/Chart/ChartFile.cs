@@ -217,34 +217,7 @@ public static class ChartFile
     }
 
     #region Vocals
-    /// <summary>
-    /// Reads vocals from the global events in a chart file.
-    /// </summary>
-    /// <returns>Instance of <see cref="Instrument{TChord}"/> where TChord is <see cref="Phrase"/> containing lyric and timing data
-    ///     <para><see langword="null"/> if the file contains no drums data</para>
-    /// </returns>
-    /// <param name="path">Path of the file to read</param>
-    public static Vocals? ReadVocals(string path) => BuildVocals(ReadGlobalEvents(path));
 
-    public static async Task<Vocals?> ReadVocalsAsync(string path, CancellationToken cancellationToken = default) => BuildVocals(await ReadGlobalEventsAsync(path, cancellationToken));
-
-    private static Vocals? BuildVocals(IList<GlobalEvent> events)
-    {
-        var lyrics = events.GetLyrics().ToArray();
-
-        if (lyrics.Length == 0)
-            return null;
-
-        var instument = new Vocals();
-
-        foreach (var diff in EnumCache<Difficulty>.Values)
-        {
-            var track = instument.CreateTrack(diff);
-            track.Chords.AddRange(lyrics);
-        }
-
-        return instument;
-    }
     #endregion
 
     #region Drums
@@ -384,31 +357,6 @@ public static class ChartFile
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
     }
-
-    public static IEnumerable<Phrase> ReadLyrics(string path) => ReadLyrics(new ReadingDataSource(path));
-
-    public static IEnumerable<Phrase> ReadLyrics(Stream stream) => ReadLyrics(new ReadingDataSource(stream));
-
-    /// <summary>
-    /// Reads lyrics from a chart file.
-    /// </summary>
-    /// <returns>Enumerable of <see cref="Phrase"/> containing the lyrics from the file</returns>
-    /// <param name="path">Path of the file to read</param>
-    /// <inheritdoc cref="ReadGlobalEvents(string)" path="/exception"/>
-    public static IEnumerable<Phrase> ReadLyrics(ReadingDataSource source) => ReadGlobalEvents(source).GetLyrics();
-
-    public static Task<IEnumerable<Phrase>> ReadLyricsAsync(string path, CancellationToken cancellationToken = default)
-        => ReadLyricsAsync(new ReadingDataSource(path), cancellationToken);
-
-    public static Task<IEnumerable<Phrase>> ReadLyricsAsync(Stream stream, CancellationToken cancellationToken = default)
-    => ReadLyricsAsync(new ReadingDataSource(stream), cancellationToken);
-
-    /// <summary>
-    /// Reads lyrics from a chart file asynchronously using multitasking.
-    /// </summary>
-    /// <param name="cancellationToken">Token to request cancellation</param>
-    public static async Task<IEnumerable<Phrase>> ReadLyricsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
-        => (await ReadGlobalEventsAsync(source, cancellationToken)).GetLyrics();
     #endregion
 
     #region Sync track

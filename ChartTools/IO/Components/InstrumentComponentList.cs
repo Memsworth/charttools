@@ -29,7 +29,6 @@ public record InstrumentComponentList()
         GHLGuitar   = DifficultySet.All,
         GHLBass     = DifficultySet.All,
         Keys        = DifficultySet.All,
-        Vocals      = DifficultySet.All
     };
 
     public DifficultySet Drums
@@ -88,13 +87,6 @@ public record InstrumentComponentList()
     }
     private DifficultySet _keys;
 
-    public DifficultySet Vocals
-    {
-        get => _vocals;
-        set => _vocals = value;
-    }
-    private DifficultySet _vocals;
-
     public InstrumentComponentList(InstrumentIdentity identity, DifficultySet difficulties = DifficultySet.All) : this()
     {
         Validator.ValidateEnum(identity);
@@ -139,8 +131,6 @@ public record InstrumentComponentList()
                 return ref _ghlBass;
             case InstrumentIdentity.Keys:
                 return ref _keys;
-            case InstrumentIdentity.Vocals:
-                return ref _vocals;
             default:
                 throw new UndefinedEnumException(instrument);
         }
