@@ -1,8 +1,8 @@
 ﻿namespace ChartTools.Lyrics;
 
-public class VocalsNote(VocalsPitch pitch) : INote, ILongTrackObject
+public class VocalsNote(VocalsPitch pitch, string? text = null) : INote, ILongTrackObject
 {
-    public VocalsNote() : this(VocalsPitchValue.None) { }
+    public VocalsNote(string? text = null) : this(VocalsPitchValue.None, text) { }
 
     public uint Position { get; set; }
 
@@ -12,7 +12,7 @@ public class VocalsNote(VocalsPitch pitch) : INote, ILongTrackObject
 
     byte INote.Index => (byte)Pitch.Value;
 
-    public string RawText { get; set; }
+    public string RawText { get; set; } = text ?? string.Empty;
 
     /// <summary>
     /// Text formatted to its in-game appearance
