@@ -15,7 +15,14 @@ public class VocalsNote(VocalsPitch pitch) : INote, ILongTrackObject
     /// <summary>
     /// Text formatted to its in-game appearance
     /// </summary>
-    public string DisplayedText => RawText.Replace("-", "").Replace('=', '-').Trim('+', '#', '^', '*');
+    /// <remarks>Some special characters may remain. See <see href="https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Vocals.md">Vocals format documentation</see> for more information.</remarks>
+    // Duplicates the string up to four times. Can be optimized by editing a char buffer directly and rebuilding a string from it.
+    // Low-level equivalents of Replace and Trim may also exist for char collections.
+    public string DisplayedText => RawText
+        .Replace("-", "")
+        .Replace('=', '-')
+        .Replace('§', '‿')
+        .Trim('+', '#', '^', '*', '%');
 
     /// <summary>
     /// <see langword="true"/> if is the last syllable or the only syllable of its word
