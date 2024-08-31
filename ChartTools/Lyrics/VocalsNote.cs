@@ -2,6 +2,8 @@
 
 public class VocalsNote(VocalsPitch pitch) : INote, ILongTrackObject
 {
+    public VocalsNote() : this(VocalsPitchValue.None) { }
+
     public uint Position { get; set; }
 
     public uint Length { get; set; }
@@ -41,6 +43,4 @@ public class VocalsNote(VocalsPitch pitch) : INote, ILongTrackObject
                 RawText += '-';
         }
     }
-
-    public VocalsNote() : this(VocalsPitchValue.None) { }
 }
