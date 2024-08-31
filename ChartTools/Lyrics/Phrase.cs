@@ -41,12 +41,8 @@ public class Phrase(PhraseMarker marker, IReadOnlyList<VocalsNote> notes) : ILon
         foreach (var note in Notes)
             yield return new(note.Position, EventTypeHelper.Global.Lyric, note.RawText);
 
-        uint
-            phraseEnd = (PhraseMarker as ILongTrackObject).EndPosition,
-            noteEnd = (Notes[^1] as ILongTrackObject).EndPosition;
-
-        if (phraseEnd > noteEnd)
-            yield return new(phraseEnd, EventTypeHelper.Global.PhraseEnd);
+        if (PhraseMarker.Length > 0)
+            yield return new((PhraseMarker as ILongTrackObject).EndPosition, EventTypeHelper.Global.PhraseEnd);
     }
 }
 
