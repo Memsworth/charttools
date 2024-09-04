@@ -7,17 +7,20 @@ namespace ChartTools.IO;
 /// </summary>
 /// <param name="path">File path</param>
 public delegate void VoidRead(string path);
+
 /// <summary>
 /// Read method that generates an object of the target type
 /// </summary>
 /// <param name="path">File path</param>
 public delegate T Read<T>(string path);
+
 /// <summary>
 /// Asynchronous read method that generates an object of the target type
 /// </summary>
 /// <typeparam name="T">Output type</typeparam>
 /// <param name="path">File path</param>
 public delegate Task<T> AsyncRead<T>(string path);
+
 /// <summary>
 /// Write method hat takes an object of a target type
 /// </summary>
@@ -25,6 +28,7 @@ public delegate Task<T> AsyncRead<T>(string path);
 /// <param name="path">File path</param>
 /// <param name="content">Object to write</param>
 public delegate void Write<T>(string path, T content);
+
 /// <summary>
 /// Write method hat takes an object of a target type
 /// </summary>
@@ -110,5 +114,5 @@ internal static class ExtensionHandler
     /// Gets the exception to throw if the extension has no method that handles it.
     /// </summary>
     /// <returns>Instance of <see cref="Exception"/> to throw</returns>
-    private static Exception GetException(string extension, IEnumerable<string> supportedExtensions) => new ArgumentException($"\"{extension}\" is not a supported extension. File must be {supportedExtensions.VerbalEnumerate("or")}.");
+    private static ArgumentException GetException(string extension, IEnumerable<string> supportedExtensions) => new($"\"{extension}\" is not a supported extension. File must be {supportedExtensions.VerbalEnumerate("or")}.");
 }
