@@ -658,6 +658,7 @@ public static class ChartFile
     }
     #endregion
 
+    #region Global events
     private static ChartFileWriter GetGlobalEventWriter(WritingDataSource source, IEnumerable<GlobalEvent> events, ChartWritingSession session) => new(source, null, new GlobalEventSerializer(events, session));
 
     /// <summary>
@@ -680,6 +681,7 @@ public static class ChartFile
         var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         await writer.WriteAsync(cancellationToken);
     }
+    #endregion
 
 
     private static ChartFileWriter GetSyncTrackWriter(WritingDataSource source, SyncTrack syncTrack, ChartWritingSession session) => new(source, null, new SyncTrackSerializer(syncTrack, session));
