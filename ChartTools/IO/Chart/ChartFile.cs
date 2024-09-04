@@ -60,13 +60,14 @@ public static class ChartFile
         // Vocals are read and parsed as global events
         if (reader.Session.Components.Vocals)
         {
-            song.GlobalEvents.GetLyrics(out var phrases, out var notes);
-            song.Vocals.Standard = new(phrases, notes);
+            // Parson of global events is forced - not null
+            song.GlobalEvents!.GetLyrics(out var phrases, out var notes);
+            song.Vocals = new() { Standard = new(phrases, notes) };
         }
 
         // Requesting the vocals components forces parsing of global events. Discard if not requested.
         if (!reader.Session.Components.GlobalEvents)
-            song.GlobalEvents.Clear();
+            song.GlobalEvents?.Clear();
 
         return song;
     }
@@ -397,7 +398,7 @@ public static class ChartFile
     /// <inheritdoc cref="SyncTrack.FromFile(string, ReadingConfiguration?)"/>
     /// <param name="path"><inheritdoc cref="SyncTrack.FromFile(string, ReadingConfiguration?)" path="/param[@name='path']"/></param>
     /// <param name="config"><inheritdoc cref="SyncTrack.FromFile(string, ReadingConfiguration?)" path="/param[@name='config']"/></param>
-    public static SyncTrack ReadSyncTrack(string path, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
+    public static SyncTrack ReadSyncTrack(string path, ChartReadingConfiguration? config = default)
     {
         var session = new ChartReadingSession(new() { SyncTrack = true }, config, null);
         var reader = new ChartFileReader(new(path), session);
@@ -452,11 +453,16 @@ public static class ChartFile
         var serializers = new List<Serializer<string>>();
 
         if (components.Metadata)
-            serializers.Add(new MetadataSerializer(song.Metadata));
+        {
+            if (song.Metadata is not null)
+                serializers.Add(new MetadataSerializer(song.Metadata));
+            else
+                removedHeaders.Add(ChartFormatting.MetadataHeader);
+        }
 
         if (components.SyncTrack)
         {
-            if (!song.SyncTrack.IsEmpty)
+            if (song.SyncTrack is not null)
                 serializers.Add(new SyncTrackSerializer(song.SyncTrack, session));
             else
                 removedHeaders.Add(ChartFormatting.SyncTrackHeader);
@@ -467,11 +473,14 @@ public static class ChartFile
             // TODO Add <remark> that enabling the vocals component will also rewrite global events.
             if (components.Vocals)
             {
-                var vocals = song.Vocals.Standard;
-                song.GlobalEvents.SetLyrics(vocals.Phrases, vocals.Notes);
+                var vocals = (song.Vocals ??= new()).Standard;
+
+                song.GlobalEvents = (song.GlobalEvents is null
+                    ? vocals.ToGlobalEvents()
+                    : song.GlobalEvents.SetLyrics(vocals)).ToList();
             }
 
-            if (song.GlobalEvents.Count > 0)
+            if (song.GlobalEvents?.Count > 0)
                 serializers.Add(new GlobalEventSerializer(song.GlobalEvents, session));
             else
                 removedHeaders.Add(ChartFormatting.GlobalEventHeader);
@@ -497,7 +506,7 @@ public static class ChartFile
     /// <param name="song">Song to write</param>
     public static void WriteSong(WritingDataSource source, Song song, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
+        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
         writer.Write();
     }
 
@@ -509,7 +518,7 @@ public static class ChartFile
 
     public static async Task WriteSongAsync(WritingDataSource source, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
+        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -529,7 +538,7 @@ public static class ChartFile
 
     public static void ReplaceComponents(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
+        var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
         writer.Write();
     }
 
@@ -547,7 +556,7 @@ public static class ChartFile
 
     public static async Task ReplaceComponentsAsync(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
+        var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion

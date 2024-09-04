@@ -18,23 +18,23 @@ public class Song
     /// <summary>
     /// Set of information about the song not unrelated to instruments, syncing or events
     /// </summary>
-    public Metadata Metadata { get; set; } = new();
+    public Metadata? Metadata { get; set; }
 
     /// <inheritdoc cref="FormattingRules"/>
     public FormattingRules Formatting { get; set; } = new();
 
     /// <inheritdoc cref="ChartTools.SyncTrack"/>
-    public SyncTrack SyncTrack { get; set; } = new();
+    public SyncTrack? SyncTrack { get; set; }
 
     /// <summary>
     /// List of events common to all instruments
     /// </summary>
-    public List<GlobalEvent> GlobalEvents { get; set; } = [];
+    public List<GlobalEvent>? GlobalEvents { get; set; }
 
     /// <inheritdoc cref="InstrumentSet"/>
     public InstrumentSet Instruments { get; set; } = new();
 
-    public Vocals Vocals { get; set; } = new();
+    public Vocals? Vocals { get; set; }
 
     public ChartSection? UnknownChartSections { get; set; } = [];
 
