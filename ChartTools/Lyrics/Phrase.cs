@@ -1,5 +1,6 @@
 ﻿using ChartTools.Events;
 using ChartTools.Extensions.Linq;
+using ChartTools.Lyrics.Tracks;
 
 namespace ChartTools.Lyrics;
 
@@ -165,4 +166,7 @@ public static class PhraseExtensions
 
         return collections.AlternateBy(e => e.Position);
     }
+
+    public static IEnumerable<GlobalEvent> SetLyrics(this IEnumerable<GlobalEvent> events, StandardVocalsTrack track)
+        => events.SetLyrics(track.Phrases, track.Notes);
 }
