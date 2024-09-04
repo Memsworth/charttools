@@ -31,8 +31,7 @@ public class TempoMap : IList<Tempo>
     }
     public void Add(Tempo item)
     {
-        if (item is null)
-            throw new ArgumentNullException(nameof(item));
+        ArgumentNullException.ThrowIfNull(item);
 
         _items.Add(item);
 
