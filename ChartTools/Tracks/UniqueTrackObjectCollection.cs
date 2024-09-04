@@ -12,11 +12,7 @@ public class UniqueTrackObjectCollection<T>(IEnumerable<T>? items = null) : ICol
     public int Count => items.Count;
     bool ICollection<T>.IsReadOnly => false;
 
-    private void RemoveDuplicate(T item)
-    {
-        if (items.ContainsKey(item.Position))
-            items.Remove(item.Position);
-    }
+    private void RemoveDuplicate(T item) => items.Remove(item.Position);
 
     public void Add(T item)
     {
