@@ -8,7 +8,7 @@ internal class ChordProvider : ISerializerDataProvider<LaneChord, TrackObjectEnt
 {
     public IEnumerable<TrackObjectEntry> ProvideFor(IEnumerable<LaneChord> source, ChartWritingSession session)
     {
-        List<uint> orderedPositions = new();
+        List<uint> orderedPositions = [];
         LaneChord? previousChord = null;
 
         foreach (var chord in source)

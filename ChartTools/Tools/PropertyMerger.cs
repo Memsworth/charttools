@@ -44,6 +44,6 @@ public static class PropertyMerger
         }
 
         IEnumerable<PropertyInfo> GetProperties(Type type) => type.GetProperties().Where(i => i.CanWrite);
-        IEnumerable<object> GetValues(IEnumerable<object> sources, PropertyInfo prop) => sources.Select(s => prop.GetValue(s)).NonNull();
+        IEnumerable<object> GetValues(IEnumerable<object> sources, PropertyInfo prop) => sources.Select(prop.GetValue).NonNull();
     }
 }

@@ -15,18 +15,19 @@ public class SyncTrack : IEmptyVerifiable
     /// <summary>
     /// Tempo markers
     /// </summary>
-    public TempoMap Tempo { get; } = new();
+    public TempoMap Tempo { get; } = [];
+
     /// <summary>
     /// Time signature markers
     /// </summary>
-    public List<TimeSignature> TimeSignatures { get; } = new();
+    public List<TimeSignature> TimeSignatures { get; } = [];
 
     /// <summary>
     /// Reads a <see cref="SyncTrack"/> from a file.
     /// </summary>
     /// <param name="path">Path of the file</param>
     /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
-    public static SyncTrack FromFile(string path, ReadingConfiguration? config = default) => ExtensionHandler.Read<SyncTrack>(path, (".chart", path => ChartFile.ReadSyncTrack(path, config?.Chart)));
+    public static SyncTrack FromFile(string path, ReadingConfiguration? config = default) => ExtensionHandler.Read(path, (".chart", path => ChartFile.ReadSyncTrack(path, config?.Chart)));
 
     /// <summary>
     /// Reads a <see cref="SyncTrack"/> from a file asynchronously using multitasking.
@@ -35,7 +36,7 @@ public class SyncTrack : IEmptyVerifiable
     /// <param name="cancellationToken">Token to request cancellation</param>
     /// <param name="config"><inheritdoc cref="FromFile(string, ReadingConfiguration?)" path="/param[@name='config']"/></param>
     /// <returns></returns>
-    public static async Task<SyncTrack> FromFileAsync(string path, ReadingConfiguration? config = default, CancellationToken cancellationToken = default) => await ExtensionHandler.ReadAsync<SyncTrack>(path, (".chart", path => ChartFile.ReadSyncTrackAsync(path, config?.Chart, cancellationToken)));
+    public static async Task<SyncTrack> FromFileAsync(string path, ReadingConfiguration? config = default, CancellationToken cancellationToken = default) => await ExtensionHandler.ReadAsync(path, (".chart", path => ChartFile.ReadSyncTrackAsync(path, config?.Chart, cancellationToken)));
     public void ToFile(string path, WritingConfiguration? config = default) => ExtensionHandler.Write(path, this, (".chart", (path, track) => ChartFile.ReplaceSyncTrack(path, track, config?.Chart)));
     public async Task ToFileAsync(string path, WritingConfiguration? config = default, CancellationToken cancellationToken = default) => await ExtensionHandler.WriteAsync(path, this, (".chart", (path, track) => ChartFile.ReplaceSyncTrackAsync(path, track, config?.Chart, cancellationToken)));
 }

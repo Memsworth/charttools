@@ -7,8 +7,8 @@ namespace ChartTools;
 /// </summary>
 public class TempoMap : IList<Tempo>
 {
-    private readonly List<Tempo> _items = new();
-    private readonly List<Tempo> _anchors = new();
+    private readonly List<Tempo> _items = [];
+    private readonly List<Tempo> _anchors = [];
 
     public Tempo this[int index]
     {
@@ -17,6 +17,7 @@ public class TempoMap : IList<Tempo>
     }
     public int Count => _items.Count;
     bool ICollection<Tempo>.IsReadOnly => false;
+
     /// <summary>
     /// Indicates if all anchored markers are synchronized.
     /// </summary>
@@ -29,6 +30,7 @@ public class TempoMap : IList<Tempo>
         if (item.Anchor is not null)
             _anchors.Add(item);
     }
+
     public void Add(Tempo item)
     {
         ArgumentNullException.ThrowIfNull(item);
@@ -38,6 +40,7 @@ public class TempoMap : IList<Tempo>
         AddBase(item);
         Desync();
     }
+
     public void AddRange(IEnumerable<Tempo> items)
     {
         foreach (var item in items)
@@ -48,7 +51,9 @@ public class TempoMap : IList<Tempo>
 
         Desync();
     }
+
     public void Clear() => _items.Clear();
+
     public void Clear(bool detachMap)
     {
         if (detachMap)
@@ -131,8 +136,8 @@ public class TempoMap : IList<Tempo>
         if (Synchronized)
             return;
 
-        List<Tempo> synced = new();
-        List<Tempo> desynced = new();
+        List<Tempo> synced = [];
+        List<Tempo> desynced = [];
 
         // Split synced and desynced. Sync 0 anchors.
         foreach (var tempo in _items)

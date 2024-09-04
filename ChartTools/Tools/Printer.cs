@@ -12,14 +12,14 @@ public static class Printer
     {
         var content = new List<List<ConsoleContent>>();
         uint[] sustainEnds = new uint[6];
-        ConsoleColor[] laneColors = new ConsoleColor[]
-        {
+        ConsoleColor[] laneColors =
+        [
             ConsoleColor.Green,
             ConsoleColor.Red,
             ConsoleColor.Yellow,
             ConsoleColor.Blue,
             ConsoleColor.DarkYellow
-        };
+        ];
 
         foreach (var chord in track.Chords.Where(c => c.Notes.Count > 0).OrderBy(t => t.Position))
         {

@@ -11,7 +11,7 @@ internal class ChartWritingSession(ChartWritingConfiguration? config, Formatting
     public IEnumerable<TrackObjectEntry> GetUnsupportedModifierChordEntries(LaneChord? previous, LaneChord current) => Configuration.UnsupportedModifierPolicy switch
     {
         UnsupportedModifierPolicy.ThrowException => throw new Exception($"Chord at position {current.Position} as an unsupported modifier for the chart format."),
-        UnsupportedModifierPolicy.IgnoreChord    => Enumerable.Empty<TrackObjectEntry>(),
+        UnsupportedModifierPolicy.IgnoreChord    => [],
         UnsupportedModifierPolicy.IgnoreModifier => current.GetChartNoteData(),
         UnsupportedModifierPolicy.Convert        => current.GetChartModifierData(previous, this),
         _ => throw ConfigurationExceptions.UnsupportedPolicy(Configuration.UnsupportedModifierPolicy)

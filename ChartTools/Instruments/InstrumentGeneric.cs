@@ -99,7 +99,7 @@ public abstract record Instrument<TChord> : Instrument where TChord : IChord
     protected override Track<TChord>? GetHard() => Hard;
     protected override Track<TChord>? GetExpert() => Expert;
 
-    public override Track<TChord>?[] GetTracks() => new Track<TChord>?[] { Easy, Medium, Hard, Expert };
+    public override Track<TChord>?[] GetTracks() => [ Easy, Medium, Hard, Expert ];
     public override IEnumerable<Track<TChord>> GetExistingTracks() => base.GetExistingTracks().Cast<Track<TChord>>();
 
     /// <summary>

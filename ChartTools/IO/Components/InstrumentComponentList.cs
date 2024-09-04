@@ -139,12 +139,12 @@ public record InstrumentComponentList()
     public ref DifficultySet Map(StandardInstrumentIdentity instrument)
     {
         Validator.ValidateEnum(instrument);
-        return ref Map((InstrumentIdentity)(instrument));
+        return ref Map((InstrumentIdentity)instrument);
     }
 
     public ref DifficultySet Map(GHLInstrumentIdentity instrument)
     {
         Validator.ValidateEnum(instrument);
-        return ref Map((InstrumentIdentity)(instrument));
+        return ref Map((InstrumentIdentity)instrument);
     }
 }

@@ -4,7 +4,7 @@ namespace ChartTools.IO.Sections;
 
 public abstract class SectionSet<T> : IList<Section<T>>
 {
-    private readonly List<Section<T>> _sections = new();
+    private readonly List<Section<T>> _sections = [];
     public abstract ReservedSectionHeaderSet ReservedHeaders { get; }
 
     #region IList
