@@ -236,7 +236,7 @@ public static class ChartFile
 
     [Obsolete($"Use {nameof(ReadInstrumentsAsync)} with a component list.")]
     public static async Task<Drums?> ReadDrumsAsync(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
-        => (await ReadInstrumentsAsync(path, new(InstrumentIdentity.Drums), config, formatting)).Drums;
+        => (await ReadInstrumentsAsync(path, new(InstrumentIdentity.Drums), config, formatting, cancellationToken)).Drums;
     #endregion
 
     #region GHL
