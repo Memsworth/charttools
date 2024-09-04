@@ -1,6 +1,6 @@
 ﻿namespace ChartTools.Lyrics;
 
-public abstract class VocalsTrack
+public abstract class VocalsTrack(IList<PhraseMarker>? markers = null)
 {
-    public List<PhraseMarker> Phrases { get; } = [];
+    public IList<PhraseMarker> Phrases { get; } = markers ?? [];
 }

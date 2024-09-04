@@ -1,6 +1,6 @@
 ﻿namespace ChartTools.Lyrics.Tracks;
 
-public class StandardVocalsTrack : VocalsTrack
+public class StandardVocalsTrack(IList<PhraseMarker>? phrases = null, IList<VocalsNote>? notes = null) : VocalsTrack(phrases)
 {
-    public List<VocalsNote> Notes { get; } = [];
+    public IList<VocalsNote> Notes { get; } = notes ?? [];
 }

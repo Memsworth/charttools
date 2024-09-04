@@ -10,6 +10,7 @@ using ChartTools.IO.Configuration;
 using ChartTools.IO.Formatting;
 using ChartTools.IO.Sources;
 using ChartTools.Lyrics;
+using ChartTools.Lyrics.Tracks;
 
 namespace ChartTools.IO.Chart;
 
@@ -55,6 +56,17 @@ public static class ChartFile
 
         foreach (var parser in reader.Parsers)
             parser.ApplyToSong(song);
+
+        // Vocals are read and parsed as global events
+        if (reader.Session.Components.Vocals)
+        {
+            song.GlobalEvents.GetLyrics(out var phrases, out var notes);
+            song.Vocals.Standard = new(phrases, notes);
+        }
+
+        // Requesting the vocals components forces parsing of global events. Discard if not requested.
+        if (!reader.Session.Components.GlobalEvents)
+            song.GlobalEvents.Clear();
 
         return song;
     }

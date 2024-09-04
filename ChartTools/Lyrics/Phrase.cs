@@ -8,13 +8,11 @@ namespace ChartTools.Lyrics;
 /// </summary>
 /// <param name="marker"></param>
 /// <param name="notes"></param>
-public class Phrase(PhraseMarker marker, IList<VocalsNote> notes) : ILongTrackObject
+public class Phrase(PhraseMarker marker, IList<VocalsNote>? notes = null) : ILongTrackObject
 {
-    public Phrase(PhraseMarker marker) : this(marker, []) { }
-
     public PhraseMarker PhraseMarker { get; } = marker;
 
-    public IList<VocalsNote> Notes { get; } = notes;
+    public IList<VocalsNote> Notes { get; } = notes ?? [];
 
     public uint Position
     {
@@ -53,7 +51,7 @@ public class Phrase(PhraseMarker marker, IList<VocalsNote> notes) : ILongTrackOb
 /// </summary>
 public static class PhraseExtensions
 {
-    public static void GetLyrics(this IEnumerable<GlobalEvent> events, out ICollection<PhraseMarker> phrases, out ICollection<VocalsNote> notes)
+    public static void GetLyrics(this IEnumerable<GlobalEvent> events, out IList<PhraseMarker> phrases, out IList<VocalsNote> notes)
     {
         PhraseMarker? phrase = null;
 
