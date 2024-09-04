@@ -340,7 +340,7 @@ public static class ChartFile
         => ReadGlobalEvents(new ReadingDataSource(path));
 
     public static List<GlobalEvent> ReadGlobalEvents(Stream stream)
-    => ReadGlobalEvents(new ReadingDataSource(stream));
+        => ReadGlobalEvents(new ReadingDataSource(stream));
 
     public static List<GlobalEvent> ReadGlobalEvents(ReadingDataSource source)
     {
@@ -355,7 +355,7 @@ public static class ChartFile
         => ReadGlobalEventsAsync(new ReadingDataSource(path), cancellationToken);
 
     public static Task<List<GlobalEvent>> ReadGlobalEventsAsync(Stream stream, CancellationToken cancellationToken = default)
-    => ReadGlobalEventsAsync(new ReadingDataSource(stream), cancellationToken);
+        => ReadGlobalEventsAsync(new ReadingDataSource(stream), cancellationToken);
 
     public static async Task<List<GlobalEvent>> ReadGlobalEventsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
     {
@@ -364,6 +364,32 @@ public static class ChartFile
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
+    }
+    #endregion
+
+    #region Vocals
+    public static StandardVocalsTrack ReadVocals(string path)
+        => ReadVocals(new ReadingDataSource(path));
+
+    public static StandardVocalsTrack ReadVocals(Stream stream)
+    => ReadVocals(new ReadingDataSource(stream));
+
+    public static StandardVocalsTrack ReadVocals(ReadingDataSource source)
+    {
+        ReadGlobalEvents(source).GetLyrics(out var phrases, out var notes);
+        return new(phrases, notes);
+    }
+
+    public static Task<StandardVocalsTrack> ReadVocalsAsync(string path, CancellationToken cancellationToken = default)
+        => ReadVocalsAsync(new ReadingDataSource(path), cancellationToken);
+
+    public static Task<StandardVocalsTrack> ReadVocalsAsync(Stream stream, CancellationToken cancellationToken = default)
+        => ReadVocalsAsync(new ReadingDataSource(stream), cancellationToken);
+
+    public static async Task<StandardVocalsTrack> ReadVocalsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
+    {
+        (await ReadGlobalEventsAsync(source, cancellationToken)).GetLyrics(out var phrases, out var notes);
+        return new(phrases, notes);
     }
     #endregion
 
@@ -419,6 +445,7 @@ public static class ChartFile
         }
     }
 
+    #region Song
     private static ChartFileWriter GetSongWriter(WritingDataSource source, Song song, ComponentList components, ChartWritingSession session)
     {
         var removedHeaders = new List<string>();
@@ -485,7 +512,9 @@ public static class ChartFile
         var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
+    #endregion
 
+    #region Components
     public static void ReplaceComponents(string path, Song song, ComponentList components, ChartWritingConfiguration? config = default)
         => ReplaceComponents(new WritingDataSource(path), song, components, config);
 
@@ -521,7 +550,9 @@ public static class ChartFile
         var writer = GetSongWriter(source, song, components, new(config, song.Metadata.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
+    #endregion
 
+    #region Instruments
     private static ChartFileWriter GetInstrumentsWriter(WritingDataSource source, InstrumentSet set, InstrumentComponentList components, ChartWritingSession session)
     {
         var serializers = new List<Serializer<string>>();
@@ -593,21 +624,39 @@ public static class ChartFile
         var writer = GetTrackWriter(source, track, new(config, formatting));
         await writer.WriteAsync(cancellationToken);
     }
+    #endregion
 
+    #region Metadata
     private static ChartFileWriter GetMetadataWriter(WritingDataSource source, Metadata metadata) => new(source, null, new MetadataSerializer(metadata));
+
+    public static void ReplaceMetadata(string path, Metadata metadata)
+        => ReplaceMetadata(new WritingDataSource(path), metadata);
+
+    public static void ReplaceMetadata(Stream stream, Metadata metadata)
+    => ReplaceMetadata(new WritingDataSource(stream), metadata);
 
     /// <summary>
     /// Replaces the metadata in a file.
     /// </summary>
-    /// <param name="path">Path of the file to read</param>
     /// <param name="metadata">Metadata to write</param>
-    public static void ReplaceMetadata(string path, Metadata metadata)
+    public static void ReplaceMetadata(WritingDataSource source, Metadata metadata)
     {
-        using var source = new WritingDataSource(path);
-
         var writer = GetMetadataWriter(source, metadata);
         writer.Write();
     }
+
+    public static Task ReplaceMetadataAsync(string path, Metadata metadata, CancellationToken cancellationToken = default)
+        => ReplaceMetadataAsync(new WritingDataSource(path), metadata, cancellationToken);
+
+    public static Task ReplaceMetadataAsync(Stream stream, Metadata metadata, CancellationToken cancellationToken = default)
+        => ReplaceMetadataAsync(new WritingDataSource(stream), metadata, cancellationToken);
+
+    public static async Task ReplaceMetadataAsync(WritingDataSource source, Metadata metadata, CancellationToken cancellationToken = default)
+    {
+        var writer = GetMetadataWriter(source, metadata);
+        await writer.WriteAsync(cancellationToken);
+    }
+    #endregion
 
     private static ChartFileWriter GetGlobalEventWriter(WritingDataSource source, IEnumerable<GlobalEvent> events, ChartWritingSession session) => new(source, null, new GlobalEventSerializer(events, session));
 
@@ -631,6 +680,7 @@ public static class ChartFile
         var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         await writer.WriteAsync(cancellationToken);
     }
+
 
     private static ChartFileWriter GetSyncTrackWriter(WritingDataSource source, SyncTrack syncTrack, ChartWritingSession session) => new(source, null, new SyncTrackSerializer(syncTrack, session));
 
