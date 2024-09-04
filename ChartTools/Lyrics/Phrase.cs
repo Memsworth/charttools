@@ -4,15 +4,17 @@ using ChartTools.Extensions.Linq;
 namespace ChartTools.Lyrics;
 
 /// <summary>
-/// Grouping of a <see cref="PhraseMarker"/> and set of <see cref="VocalsNote"/> for assembling lyric text.
+/// Grouping of a <see cref="Lyrics.PhraseMarker"/> and set of <see cref="VocalsNote"/> for assembling lyric text.
 /// </summary>
 /// <param name="marker"></param>
 /// <param name="notes"></param>
-public class Phrase(PhraseMarker marker, IReadOnlyList<VocalsNote> notes) : ILongTrackObject
+public class Phrase(PhraseMarker marker, IList<VocalsNote> notes) : ILongTrackObject
 {
+    public Phrase(PhraseMarker marker) : this(marker, []) { }
+
     public PhraseMarker PhraseMarker { get; } = marker;
 
-    public IReadOnlyList<VocalsNote> Notes { get; } = notes;
+    public IList<VocalsNote> Notes { get; } = notes;
 
     public uint Position
     {
@@ -47,10 +49,79 @@ public class Phrase(PhraseMarker marker, IReadOnlyList<VocalsNote> notes) : ILon
 }
 
 /// <summary>
-/// Provides additional methods to <see cref="Phrase"/>
+/// Provides additional methods to <see cref="Phrase"/>.
 /// </summary>
 public static class PhraseExtensions
 {
+    public static void GetLyrics(this IEnumerable<GlobalEvent> events, out ICollection<PhraseMarker> phrases, out ICollection<VocalsNote> notes)
+    {
+        PhraseMarker? phrase = null;
+
+        phrases = [];
+        notes = [];
+
+        foreach (var e in events.OrderBy(e => e.Position))
+        {
+            switch (e.EventType)
+            {
+                case EventTypeHelper.Global.PhraseStart:
+                    phrase = new(e.Position);
+                    phrases.Add(phrase);
+                    break;
+                case EventTypeHelper.Global.Lyric:
+                    notes.Add(new(e.Argument));
+                    break;
+                case EventTypeHelper.Global.PhraseEnd:
+                    if (phrase is not null)
+                        phrase.Length = e.Position - phrase.Position;
+                    break;
+            }
+        }
+    }
+
+    public static IEnumerable<Phrase> GetLyrics(IEnumerable<PhraseMarker> phrases, IEnumerable<VocalsNote> notes)
+    {
+        using var phraseEnumerator = phrases.OrderBy(p => p.Position).GetEnumerator();
+
+        if (!phraseEnumerator.MoveNext())
+            yield break;
+
+        using var notesEnumerator = notes.OrderBy(n => n.Position).GetEnumerator();
+        notesEnumerator.MoveNext(); // Initialize prematurely to simplify the loop flow
+
+        Phrase lastPhrase = new(phraseEnumerator.Current);
+
+        // Keeps track on if the notes enumerator reached the end as IEnumerator provides no safe way of checking without mutating
+        bool notesRemaining = true;
+
+        while (phraseEnumerator.MoveNext()) // Peek forward and add prior notes to the last phrase
+        {
+            while (notesRemaining && notesEnumerator.Current.Position < phraseEnumerator.Current.Position)
+            {
+                lastPhrase.Notes.Add(notesEnumerator.Current);
+                notesRemaining = notesEnumerator.MoveNext();
+            }
+
+            yield return lastPhrase;
+            lastPhrase = new(phraseEnumerator.Current);
+        }
+
+        // Add remaining notes to the last phrase
+        while (notesRemaining)
+        {
+            lastPhrase.Notes.Add(notesEnumerator.Current);
+            notesRemaining = notesEnumerator.MoveNext();
+        }
+
+        yield return lastPhrase;
+    }
+
+    public static IEnumerable<Phrase> GetLyrics(this IEnumerable<GlobalEvent> events)
+    {
+        GetLyrics(events, out var phrases, out var notes);
+        return GetLyrics(phrases, notes);
+    }
+
     public static IEnumerable<GlobalEvent> ToGlobalEvents(IEnumerable<PhraseMarker> markers, IEnumerable<VocalsNote> notes)
     {
         foreach (var marker in markers)
@@ -72,7 +143,7 @@ public static class PhraseExtensions
     /// <returns>Global events making up the phrases</returns>
     public static IEnumerable<GlobalEvent> ToGlobalEvents(this IEnumerable<Phrase> source) => source.SelectMany(p => p.ToGlobalEvents());
 
-    public static IEnumerable<GlobalEvent> SetLyrics(IEnumerable<GlobalEvent> events, IEnumerable<PhraseMarker> markers, IEnumerable<VocalsNote> notes)
+    public static IEnumerable<GlobalEvent> SetLyrics(this IEnumerable<GlobalEvent> events, IEnumerable<PhraseMarker> markers, IEnumerable<VocalsNote> notes)
     {
         IEnumerable<GlobalEvent>[] collections =
         [
@@ -83,7 +154,7 @@ public static class PhraseExtensions
         return collections.AlternateBy(e => e.Position);
     }
 
-    public static IEnumerable<GlobalEvent> SetLyrics(IEnumerable<GlobalEvent> events, IEnumerable<Phrase> phrases)
+    public static IEnumerable<GlobalEvent> SetLyrics(this IEnumerable<GlobalEvent> events, IEnumerable<Phrase> phrases)
     {
         // TODO Add overload with IList or similar type that can be modified directly by adding and removing events
 
