@@ -3,9 +3,11 @@ using ChartTools.IO.Chart.Entries;
 
 namespace ChartTools;
 
-public abstract class LaneChord : IChord
+public abstract class LaneChord(uint position) : IChord
 {
-    public uint Position { get; set; }
+    public LaneChord() : this(0) { }
+
+    public uint Position { get; set; } = position;
 
     public IReadOnlyCollection<LaneNote> Notes => GetNotes();
     IReadOnlyCollection<INote> IChord.Notes => GetNotes();
@@ -17,14 +19,12 @@ public abstract class LaneChord : IChord
 
     internal abstract bool ChartSupportedModifiers { get; }
 
-    public LaneChord() : this(0) { }
-    public LaneChord(uint position) => Position = position;
-
     public abstract LaneNote CreateNote(byte index, uint sustain = 0);
     INote IChord.CreateNote(byte index, uint sustain) => CreateNote(index, sustain);
 
     protected abstract IReadOnlyCollection<LaneNote> GetNotes();
 
     internal abstract IEnumerable<TrackObjectEntry> GetChartNoteData();
+
     internal abstract IEnumerable<TrackObjectEntry> GetChartModifierData(LaneChord? previous, ChartWritingSession session);
 }

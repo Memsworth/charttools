@@ -2,20 +2,21 @@
 
 namespace ChartTools;
 
-public class LaneNoteCollection<TNote, TLane> : ICollection<TNote>, IReadOnlyList<TNote> where TNote : LaneNote<TLane>, new() where TLane : struct, Enum
+public class LaneNoteCollection<TNote, TLane>(bool openExclusivity) : ICollection<TNote>, IReadOnlyList<TNote>
+    where TNote : LaneNote<TLane>, new()
+    where TLane : struct, Enum
 {
-    private readonly List<TNote> _notes = new();
+    private readonly List<TNote> _notes = [];
 
     /// <summary>
     /// If <see langword="true"/>, trying to combine an open note with other notes will remove the current ones.
     /// </summary>
-    public bool OpenExclusivity { get; }
+    public bool OpenExclusivity { get; } = openExclusivity;
     public int Count => _notes.Count;
     bool ICollection<TNote>.IsReadOnly => false;
 
-    public LaneNoteCollection(bool openExclusivity) => OpenExclusivity = openExclusivity;
-
     public void Add(TLane lane) => AddNonNull(new TNote() { Lane = lane });
+
     /// <summary>
     /// Adds a note to the <see cref="LaneNoteCollection{TNote, TLane}"/>.
     /// </summary>

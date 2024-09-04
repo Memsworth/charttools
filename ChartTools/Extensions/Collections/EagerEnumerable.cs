@@ -2,12 +2,9 @@
 
 namespace ChartTools.Internal.Collections;
 
-internal class EagerEnumerable<T> : IEnumerable<T>
+internal class EagerEnumerable<T>(Task<IEnumerable<T>> source) : IEnumerable<T>
 {
     private IEnumerable<T>? items;
-    private readonly Task<IEnumerable<T>> source;
-
-    public EagerEnumerable(Task<IEnumerable<T>> source) => this.source = source;
 
     public IEnumerator<T> GetEnumerator()
     {
@@ -19,5 +16,6 @@ internal class EagerEnumerable<T> : IEnumerable<T>
 
         return items.GetEnumerator();
     }
+
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

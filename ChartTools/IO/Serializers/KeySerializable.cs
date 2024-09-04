@@ -2,12 +2,10 @@
 
 namespace ChartTools.IO;
 
-public abstract class KeySerializableAttribute : Attribute
+public abstract class KeySerializableAttribute(string key) : Attribute
 {
     public abstract FileType Format { get; }
-    public string Key { get; }
-
-    public KeySerializableAttribute(string key) => Key = key;
+    public string Key { get; } = key;
 
     /// <summary>
     /// Generates groups of non-null property values and their serialization keys.

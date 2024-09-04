@@ -1,11 +1,9 @@
 ﻿namespace ChartTools.IO.Chart.Parsing;
 
-internal class MetadataParser : ChartParser
+internal class MetadataParser(Metadata? existing = null): ChartParser(null! /* Session not used */, ChartFormatting.MetadataHeader)
 {
     public override Metadata Result => GetResult(result);
-    private readonly Metadata result = new();
-
-    public MetadataParser(Metadata? existing = null) : base(null!, ChartFormatting.MetadataHeader) => result = existing ?? new();
+    private readonly Metadata result = existing ?? new();
 
     protected override void HandleItem(string line)
     {

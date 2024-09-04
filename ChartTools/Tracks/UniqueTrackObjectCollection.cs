@@ -5,11 +5,9 @@ namespace ChartTools.Extensions.Collections;
 /// <summary>
 /// Set of track objects where each one must have a different position
 /// </summary>
-public class UniqueTrackObjectCollection<T> : ICollection<T> where T : ITrackObject
+public class UniqueTrackObjectCollection<T>(IEnumerable<T>? items = null) : ICollection<T> where T : ITrackObject
 {
-    private readonly Dictionary<uint, T> items;
-
-    public UniqueTrackObjectCollection(IEnumerable<T>? items = null) => this.items = items is null ? new() : items.ToDictionary(i => i.Position);
+    private readonly Dictionary<uint, T> items = items is null ? [] : items.ToDictionary(i => i.Position);
 
     public int Count => items.Count;
     bool ICollection<T>.IsReadOnly => false;
@@ -35,5 +33,6 @@ public class UniqueTrackObjectCollection<T> : ICollection<T> where T : ITrackObj
     public bool Remove(T item) => items.Remove(item.Position);
 
     public IEnumerator<T> GetEnumerator() => items.Values.GetEnumerator();
+
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

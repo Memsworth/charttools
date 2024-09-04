@@ -4,12 +4,10 @@ using ChartTools.Tools;
 
 namespace ChartTools.IO.Ini;
 
-internal class IniParser : TextParser, ISongAppliable
+internal class IniParser(Metadata? existing = null) : TextParser(IniFormatting.Header), ISongAppliable
 {
     public override Metadata Result => GetResult(result);
-    private readonly Metadata result;
-
-    public IniParser(Metadata? existing = null) : base(IniFormatting.Header) => result = existing ?? new();
+    private readonly Metadata result = existing ?? new();
 
     protected override void HandleItem(string item)
     {

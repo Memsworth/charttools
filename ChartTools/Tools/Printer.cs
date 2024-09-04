@@ -2,16 +2,10 @@
 
 public static class Printer
 {
-    private readonly struct ConsoleContent
+    private readonly struct ConsoleContent(string content, ConsoleColor color)
     {
-        public string Content { get; }
-        public ConsoleColor Color { get; }
-
-        public ConsoleContent(string content, ConsoleColor color)
-        {
-            Content = content;
-            Color = color;
-        }
+        public string Content { get; } = content;
+        public ConsoleColor Color { get; } = color;
     }
 
     public static void PrintTrack(Track<StandardChord> track)
