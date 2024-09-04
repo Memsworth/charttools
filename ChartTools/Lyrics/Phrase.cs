@@ -8,11 +8,11 @@ namespace ChartTools.Lyrics;
 /// </summary>
 /// <param name="marker"></param>
 /// <param name="notes"></param>
-public class Phrase(PhraseMarker marker, IList<VocalsNote>? notes = null) : ILongTrackObject
+public class Phrase(PhraseMarker marker, IReadOnlyList<VocalsNote>? notes = null) : ILongTrackObject
 {
     public PhraseMarker PhraseMarker { get; } = marker;
 
-    public IList<VocalsNote> Notes { get; } = notes ?? [];
+    public IReadOnlyList<VocalsNote> Notes { get; } = notes ?? [];
 
     public uint Position
     {
@@ -87,7 +87,8 @@ public static class PhraseExtensions
         using var notesEnumerator = notes.OrderBy(n => n.Position).GetEnumerator();
         notesEnumerator.MoveNext(); // Initialize prematurely to simplify the loop flow
 
-        Phrase lastPhrase = new(phraseEnumerator.Current);
+        PhraseMarker lastMarker = phraseEnumerator.Current;
+        List<VocalsNote> lastPhraseNotes = [];
 
         // Keeps track on if the notes enumerator reached the end as IEnumerator provides no safe way of checking without mutating
         bool notesRemaining = true;
@@ -96,22 +97,22 @@ public static class PhraseExtensions
         {
             while (notesRemaining && notesEnumerator.Current.Position < phraseEnumerator.Current.Position)
             {
-                lastPhrase.Notes.Add(notesEnumerator.Current);
+                lastPhraseNotes.Add(notesEnumerator.Current);
                 notesRemaining = notesEnumerator.MoveNext();
             }
 
-            yield return lastPhrase;
-            lastPhrase = new(phraseEnumerator.Current);
+            yield return new(lastMarker, lastPhraseNotes);
+            lastMarker = phraseEnumerator.Current;
         }
 
         // Add remaining notes to the last phrase
         while (notesRemaining)
         {
-            lastPhrase.Notes.Add(notesEnumerator.Current);
+            lastPhraseNotes.Add(notesEnumerator.Current);
             notesRemaining = notesEnumerator.MoveNext();
         }
 
-        yield return lastPhrase;
+        yield return new(lastMarker, lastPhraseNotes);
     }
 
     public static IEnumerable<Phrase> GetLyrics(this IEnumerable<GlobalEvent> events)
