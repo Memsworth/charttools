@@ -228,10 +228,6 @@ public static class ChartFile
             : throw new UndefinedEnumException(instrument);
     }
 
-    #region Vocals
-
-    #endregion
-
     #region Drums
     [Obsolete($"Use {nameof(ReadInstruments)} with a component list.")]
     public static Drums? ReadDrums(string path, DifficultySet difficulties = DifficultySet.All, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
@@ -439,8 +435,15 @@ public static class ChartFile
                 removedHeaders.Add(ChartFormatting.SyncTrackHeader);
         }
 
-        if (components.GlobalEvents)
+        if (components.GlobalEvents || components.Vocals)
         {
+            // TODO Add <remark> that enabling the vocals component will also rewrite global events.
+            if (components.Vocals)
+            {
+                var vocals = song.Vocals.Standard;
+                song.GlobalEvents.SetLyrics(vocals.Phrases, vocals.Notes);
+            }
+
             if (song.GlobalEvents.Count > 0)
                 serializers.Add(new GlobalEventSerializer(song.GlobalEvents, session));
             else
