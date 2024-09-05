@@ -171,7 +171,7 @@ public static class ChartFile
     /// <summary>
     /// Reads metadata from a chart file.
     /// </summary>
-    public static Metadata ReadMetadata(ReadingDataSource source)
+    public static Metadata ReadMetadata(ReadingDataSource source, Metadata? existing = null)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
         using var reader = new ChartFileReader(source, session);
@@ -179,7 +179,8 @@ public static class ChartFile
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
     }
-    public static async Task<Metadata> ReadMetadata(ReadingDataSource source, CancellationToken cancellationToken = default)
+
+    public static async Task<Metadata> ReadMetadataAsync(ReadingDataSource source, Metadata? existing = null, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
         using var reader = new ChartFileReader(source, session);

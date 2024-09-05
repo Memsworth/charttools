@@ -221,5 +221,5 @@ public class Metadata
         return data;
     }
 
-    public void ToFile(string path) => ExtensionHandler.Write(path, this, (".ini", IniFile.WriteMetadata));
+    public void ToFile(string path) => ExtensionHandler.Write(path, this, (".ini", (p, m) => IniFile.WriteMetadata(p, m)));
 }
