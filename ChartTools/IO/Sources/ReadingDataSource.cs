@@ -9,4 +9,8 @@ public class ReadingDataSource : DataSource
     }
 
     public ReadingDataSource(string path) : base(path, FileMode.Open, FileAccess.Read, FileShare.Write) { }
+
+    public static implicit operator ReadingDataSource(Stream stream) => new(stream);
+
+    public static implicit operator ReadingDataSource(string path) => new(path);
 }

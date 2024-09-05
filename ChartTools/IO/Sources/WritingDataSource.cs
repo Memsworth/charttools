@@ -20,4 +20,8 @@ public class WritingDataSource : DataSource
         base.Dispose();
         Existing?.Dispose();
     }
+
+    public static implicit operator WritingDataSource(Stream stream) => new(stream);
+
+    public static implicit operator WritingDataSource(string path) => new(path);
 }
