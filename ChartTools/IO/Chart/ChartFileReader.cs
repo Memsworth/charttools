@@ -14,14 +14,17 @@ internal class ChartFileReader(ReadingDataSource source, ChartReadingSession ses
     public ChartReadingSession Session { get; } = session;
 
     public override IEnumerable<ChartParser> Parsers => base.Parsers.Cast<ChartParser>();
+
     public override bool DefinedSectionEnd => true;
+
+    public Metadata? ExistingMetadata { get; set; }
 
     protected override ChartParser? GetParser(string header)
     {
         switch (header)
         {
             case ChartFormatting.MetadataHeader:
-                return Session.Components.Metadata ? new MetadataParser() : null;
+                return Session.Components.Metadata ? new MetadataParser(ExistingMetadata) : null;
             case ChartFormatting.GlobalEventHeader:
                 // Vocals are read from global events in chart files. Gets converted to vocals when assembling the song object
                 return Session.Components.GlobalEvents || Session.Components.Vocals ? new GlobalEventParser(Session) : null;
