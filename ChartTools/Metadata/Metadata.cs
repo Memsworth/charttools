@@ -195,7 +195,7 @@ public class Metadata
     /// <exception cref="OutOfMemoryException"/>
     public static Metadata FromFile(string path) => Read(path);
 
-    private static Metadata Read(string path, Metadata? existing = null) => ExtensionHandler.Read<Metadata>(path, (".chart", ChartFile.ReadMetadata), (".ini", path => IniFile.ReadMetadata(path, existing)));
+    private static Metadata Read(string path, Metadata? existing = null) => ExtensionHandler.Read(path, (".chart", p => ChartFile.ReadMetadata(p)), (".ini", path => IniFile.ReadMetadata(path, existing)));
 
     /// <summary>
     /// Reads the metadata from multiple files.
@@ -221,5 +221,5 @@ public class Metadata
         return data;
     }
 
-    public void ToFile(string path) => ExtensionHandler.Write<Metadata>(path, this, (".ini", IniFile.WriteMetadata));
+    public void ToFile(string path) => ExtensionHandler.Write(path, this, (".ini", IniFile.WriteMetadata));
 }

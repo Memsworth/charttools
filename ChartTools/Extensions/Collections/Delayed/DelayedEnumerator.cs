@@ -2,15 +2,11 @@
 
 namespace ChartTools.Extensions.Collections;
 
-internal class DelayedEnumerator<T> : IEnumerator<T>
+internal class DelayedEnumerator<T>(DelayedEnumerableSource<T> source) : IEnumerator<T>
 {
     public T Current { get; private set; }
     object? IEnumerator.Current => Current;
     public bool AwaitingItems => source.AwaitingItems;
-
-    private readonly DelayedEnumerableSource<T> source;
-
-    internal DelayedEnumerator(DelayedEnumerableSource<T> source) => this.source = source;
 
     private bool WaitForItems()
     {
@@ -20,6 +16,7 @@ internal class DelayedEnumerator<T> : IEnumerator<T>
 
         return true;
     }
+
     public bool MoveNext()
     {
         if (!WaitForItems())
@@ -31,7 +28,6 @@ internal class DelayedEnumerator<T> : IEnumerator<T>
         return true;
     }
 
-    public void Dispose() => GC.SuppressFinalize(this);
-
-    public void Reset() => throw new InvalidOperationException();
+    void IDisposable.Dispose() => GC.SuppressFinalize(this);
+    void IEnumerator.Reset() => throw new InvalidOperationException();
 }

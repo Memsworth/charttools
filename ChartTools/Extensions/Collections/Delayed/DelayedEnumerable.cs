@@ -2,7 +2,7 @@
 
 namespace ChartTools.Extensions.Collections;
 
-public class DelayedEnumerable<T> : IEnumerable<T>, IDisposable
+public class DelayedEnumerable<T> : IEnumerable<T>
 {
     private readonly DelayedEnumerator<T> enumerator;
     private readonly DelayedEnumerableSource<T> source;
@@ -26,6 +26,4 @@ public class DelayedEnumerable<T> : IEnumerable<T>, IDisposable
 
     public IEnumerator<T> GetEnumerator() => enumerator;
     IEnumerator IEnumerable.GetEnumerator() => enumerator;
-
-    public void Dispose() => enumerator.Dispose();
 }

@@ -17,5 +17,7 @@ public abstract class DataSource(Stream stream) : IDisposable
     {
         if (_disposeStream)
             Stream!.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 }

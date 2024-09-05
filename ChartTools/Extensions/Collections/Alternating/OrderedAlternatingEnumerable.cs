@@ -69,15 +69,8 @@ public class OrderedAlternatingEnumerable<T, TKey> : IEnumerable<T> where TKey :
         /// </summary>
         readonly bool[] endsReached = new bool[enumerators.Length];
 
-        ~Enumerator() => Dispose(false);
-
         /// <inheritdoc/>
         public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        public virtual void Dispose(bool disposing)
         {
             foreach (IEnumerator<T> enumerator in Enumerators)
                 enumerator.Dispose();

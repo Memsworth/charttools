@@ -1,10 +1,8 @@
 ﻿namespace ChartTools.IO.Chart.Serializing;
 
-public class ChartKeySerializableAttribute : KeySerializableAttribute
+public class ChartKeySerializableAttribute(string key) : KeySerializableAttribute(key)
 {
     public override FileType Format => FileType.Chart;
-
-    public ChartKeySerializableAttribute(string key) : base(key) { }
 
     protected override string GetValueString(object propValue)
     {

@@ -75,7 +75,7 @@ public static class ChartFile
     public static Song ReadSong(ReadingDataSource source, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateSongFromReader(reader);
@@ -84,7 +84,7 @@ public static class ChartFile
     public static async Task<Song> ReadSongAsync(ReadingDataSource source, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(ComponentList.Full(), config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
@@ -93,7 +93,7 @@ public static class ChartFile
     public static Song ReadComponents(ReadingDataSource source, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateSongFromReader(reader);
@@ -102,7 +102,7 @@ public static class ChartFile
     public static async Task<Song> ReadComponentsAsync(ReadingDataSource source, ComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(components, config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateSongFromReader(reader);
@@ -151,7 +151,7 @@ public static class ChartFile
     public static InstrumentSet ReadInstruments(ReadingDataSource source, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return CreateInstrumentSetFromReader(reader);
@@ -160,7 +160,7 @@ public static class ChartFile
     public static async Task<InstrumentSet> ReadInstrumentsAsync(ReadingDataSource source, InstrumentComponentList components, ChartReadingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { Instruments = components }, config, formatting);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return CreateInstrumentSetFromReader(reader);
@@ -175,7 +175,7 @@ public static class ChartFile
     public static Metadata ReadMetadata(ReadingDataSource source)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
@@ -183,7 +183,7 @@ public static class ChartFile
     public static async Task<Metadata> ReadMetadata(ReadingDataSource source, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { Metadata = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out MetadataParser? parser) ? parser!.Result : new();
@@ -194,7 +194,7 @@ public static class ChartFile
     public static List<GlobalEvent> ReadGlobalEvents(ReadingDataSource source)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
@@ -203,7 +203,7 @@ public static class ChartFile
     public static async Task<List<GlobalEvent>> ReadGlobalEventsAsync(ReadingDataSource source, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { GlobalEvents = true }, DefaultReadConfig, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out GlobalEventParser? parser) ? parser!.Result! : [];
@@ -228,7 +228,7 @@ public static class ChartFile
     public static SyncTrack ReadSyncTrack(ReadingDataSource source, ChartReadingConfiguration? config = default)
     {
         var session = new ChartReadingSession(new() { SyncTrack = true }, config, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         reader.Read();
         return reader.Parsers.TryGetFirstOfType(out SyncTrackParser? syncTrackParser) ? syncTrackParser!.Result! : new();
@@ -237,7 +237,7 @@ public static class ChartFile
     public static async Task<SyncTrack> ReadSyncTrackAsync(ReadingDataSource source, ChartReadingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
         var session = new ChartReadingSession(new() { SyncTrack = true }, config, null);
-        var reader = new ChartFileReader(source, session);
+        using var reader = new ChartFileReader(source, session);
 
         await reader.ReadAsync(cancellationToken);
         return reader.Parsers.TryGetFirstOfType(out SyncTrackParser? syncTrackParser) ? syncTrackParser!.Result! : new();
@@ -323,13 +323,13 @@ public static class ChartFile
     /// <param name="song">Song to write</param>
     public static void WriteSong(WritingDataSource source, Song song, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
+        using var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
         writer.Write();
     }
 
     public static async Task WriteSongAsync(WritingDataSource source, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
+        using var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -337,13 +337,13 @@ public static class ChartFile
     #region Components
     public static void ReplaceComponents(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
+        using var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
         writer.Write();
     }
 
     public static async Task ReplaceComponentsAsync(WritingDataSource source, Song song, ComponentList components, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
+        using var writer = GetSongWriter(source, song, components, new(config, song.Metadata?.Formatting));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -361,13 +361,13 @@ public static class ChartFile
 
     public static void ReplaceInstruments(WritingDataSource source, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default)
     {
-        var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
+        using var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
         writer.Write();
     }
 
     public static async Task ReplaceInstrumentsAsync(WritingDataSource source, InstrumentSet set, InstrumentComponentList components, ChartWritingConfiguration? config = default, FormattingRules? formatting = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
+        using var writer = GetInstrumentsWriter(source, set, components, new(config, formatting));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -381,13 +381,13 @@ public static class ChartFile
     /// <param name="metadata">Metadata to write</param>
     public static void ReplaceMetadata(WritingDataSource source, Metadata metadata)
     {
-        var writer = GetMetadataWriter(source, metadata);
+        using var writer = GetMetadataWriter(source, metadata);
         writer.Write();
     }
 
     public static async Task ReplaceMetadataAsync(WritingDataSource source, Metadata metadata, CancellationToken cancellationToken = default)
     {
-        var writer = GetMetadataWriter(source, metadata);
+        using var writer = GetMetadataWriter(source, metadata);
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -402,13 +402,13 @@ public static class ChartFile
     /// <param name="events">Events to use as a replacement</param>
     public static void ReplaceGlobalEvents(WritingDataSource source, IEnumerable<GlobalEvent> events)
     {
-        var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
+        using var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         writer.Write();
     }
 
     public static async Task ReplaceGlobalEventsAsync(WritingDataSource source, IEnumerable<GlobalEvent> events, CancellationToken cancellationToken = default)
     {
-        var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
+        using var writer = GetGlobalEventWriter(source, events, new(DefaultWriteConfig, null));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
@@ -423,20 +423,14 @@ public static class ChartFile
     /// <param name="config"><inheritdoc cref="ReadingConfiguration" path="/summary"/></param>
     public static void ReplaceSyncTrack(WritingDataSource source, SyncTrack syncTrack, ChartWritingConfiguration? config = default)
     {
-        var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
+        using var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
         writer.Write();
     }
 
     public static async Task ReplaceSyncTrackAsync(WritingDataSource source, SyncTrack syncTrack, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
-        var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
+        using var writer = GetSyncTrackWriter(source, syncTrack, new(config, null));
         await writer.WriteAsync(cancellationToken);
     }
     #endregion
-
-    /// <summary>
-    /// Gets all the combinations of instruments and difficulties.
-    /// </summary>
-    /// <param name="instruments">Enum containing the instruments</param>
-    private static IEnumerable<(Difficulty difficulty, TInstEnum instrument)> GetTrackCombinations<TInstEnum>(IEnumerable<TInstEnum> instruments) => from difficulty in EnumCache<Difficulty>.Values from instrument in instruments select (difficulty, instrument);
 }
