@@ -21,7 +21,16 @@ public class WritingDataSource : DataSource
         Existing?.Dispose();
     }
 
-    public static implicit operator WritingDataSource(Stream stream) => new(stream);
+    /// <summary>
+    /// Creates a <see cref="WritingDataSource"/> from a <see cref="Stream"/> as a target and source of existing data.
+    /// </summary>
+    /// <param name="stream">Stream to create from</param>
+    public static implicit operator WritingDataSource(Stream stream) => new(stream, stream);
 
-    public static implicit operator WritingDataSource(string path) => new(path);
+
+    /// <summary>
+    /// Creates a <see cref="WritingDataSource"/> from a file path as a target and source of existing data.
+    /// </summary>
+    /// <param name="path">Path to create from</param>
+    public static implicit operator WritingDataSource(string path) => new(path, path);
 }

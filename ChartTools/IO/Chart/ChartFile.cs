@@ -166,7 +166,6 @@ public static class ChartFile
         return CreateInstrumentSetFromReader(reader);
     }
     #endregion
-    #endregion
 
     #region Metadata
     /// <summary>
@@ -243,6 +242,7 @@ public static class ChartFile
         return reader.Parsers.TryGetFirstOfType(out SyncTrackParser? syncTrackParser) ? syncTrackParser!.Result! : new();
     }
     #endregion
+    #endregion
 
     #region Writing
     private static void FillInstrumentsWriterData(InstrumentSet set, InstrumentComponentList components, ChartWritingSession session,
@@ -316,16 +316,27 @@ public static class ChartFile
         return new(source, removedHeaders, [.. serializers]);
     }
 
+    public static void WriteSong(string path, Song song, ChartWritingConfiguration? config = default)
+        => WriteSong(new WritingDataSource(path), song, config);
+
+    public static void WriteSong(Stream stream, Song song, ChartWritingConfiguration? config = default)
+        => WriteSong(new WritingDataSource(stream), song, config);
+
     /// <summary>
     /// Writes a song to a chart file.
     /// </summary>
-    /// <param name="path">Path of the file to write</param>
     /// <param name="song">Song to write</param>
     public static void WriteSong(WritingDataSource source, Song song, ChartWritingConfiguration? config = default)
     {
         using var writer = GetSongWriter(source, song, ComponentList.Full(), new(config, song.Metadata?.Formatting));
         writer.Write();
     }
+
+    public static Task WriteSongAsync(string path, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+        => WriteSongAsync(new WritingDataSource(path), song, config, cancellationToken);
+
+    public static Task WriteSongAsync(Stream stream, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
+        => WriteSongAsync(new WritingDataSource(stream), song, config, cancellationToken);
 
     public static async Task WriteSongAsync(WritingDataSource source, Song song, ChartWritingConfiguration? config = default, CancellationToken cancellationToken = default)
     {
