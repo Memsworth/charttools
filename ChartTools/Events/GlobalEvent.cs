@@ -29,11 +29,12 @@ public class GlobalEvent : Event
     /// Reads global events from a file.
     /// </summary>
     /// <param name="path">Path of the file</param>
-    public static IEnumerable<GlobalEvent> FromFile(string path) => ExtensionHandler.Read<IEnumerable<GlobalEvent>>(path, (".chart", ChartFile.ReadGlobalEvents));
+    public static IEnumerable<GlobalEvent> FromFile(string path) => ExtensionHandler.Read<IEnumerable<GlobalEvent>>(path, (".chart", p => ChartFile.ReadGlobalEvents(p));
+
     /// <summary>
     /// Reads global events from a file asynchronously using multitasking.
     /// </summary>
     /// <param name="path"><inheritdoc cref="FromFile(string)" path="/param[@name='path']"/></param>
     /// <param name="cancellationToken">Token to request cancellation</param>
-    public static async Task<List<GlobalEvent>> FromFileAsync(string path, CancellationToken cancellationToken) => await ExtensionHandler.ReadAsync<List<GlobalEvent>>(path, (".chart", path => ChartFile.ReadGlobalEventsAsync(path, cancellationToken)));
+    public static async Task<List<GlobalEvent>> FromFileAsync(string path, CancellationToken cancellationToken) => await ExtensionHandler.ReadAsync(path, (".chart", path => ChartFile.ReadGlobalEventsAsync(path, cancellationToken)));
 }
