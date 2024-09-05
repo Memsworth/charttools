@@ -3,7 +3,7 @@
 namespace ChartTools.IO.Chart;
 
 internal class ChartFileWriter(WritingDataSource source, IEnumerable<string>? removedHeaders, params Serializer<string>[] serializers)
-    : TextFileWriter(source, removedHeaders, serializers), IDisposable
+    : TextFileWriter(source, removedHeaders, serializers)
 {
 
 
@@ -11,6 +11,4 @@ internal class ChartFileWriter(WritingDataSource source, IEnumerable<string>? re
     protected override string? PostSerializerContent => "}";
 
     protected override bool EndReplace(string line) => line.StartsWith('[');
-
-    public void Dispose() => Source.Dispose();
 }

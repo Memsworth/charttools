@@ -5,6 +5,7 @@ using ChartTools.IO.Sources;
 namespace ChartTools.IO;
 
 internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<string>? removedHeaders, params Serializer<string>[] serializers)
+    : IDisposable
 {
     public WritingDataSource Source { get; } = source;
 
@@ -103,4 +104,6 @@ internal abstract class TextFileWriter(WritingDataSource source, IEnumerable<str
     }
 
     protected abstract bool EndReplace(string line);
+
+    public void Dispose() => Source.Dispose();
 }
