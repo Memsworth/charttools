@@ -180,7 +180,8 @@ public class Metadata
     /// Unrecognized metadata
     /// </summary>
     /// <remarks>When writing, these will only be written if the target format matches the origin</remarks>
-    public HashSet<UnidentifiedMetadata> UnidentifiedData { get; } = new(new FuncEqualityComparer<UnidentifiedMetadata>((a, b) => a.Key == b.Key));
+    public HashSet<UnidentifiedMetadata> UnidentifiedData { get; } = 
+        new(new FuncEqualityComparer<UnidentifiedMetadata>((a, b) => a.Key == b.Key && a.Origin == b.Origin));
     #endregion
 
     public void ReadFile(string path) => Read(path, this);
